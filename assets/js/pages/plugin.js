@@ -152,7 +152,7 @@ function helpBox(p) {
   const name = h("input", { id: "hName", maxlength: "60", placeholder: "Your name", value: "" });
   const where = h("input", { id: "hWhere", maxlength: "80", placeholder: "e.g. 3rd floor, by the window" });
   const err = h("p", { class: "err" });
-  const who = p.madeBy || "Someone who knows the plugin";
+  const who = "Jade Wong";
   const ask = async () => {
     if (!name.value.trim()) { err.textContent = "Type your name so they know who to help."; return; }
     try { localStorage.setItem("sa.name", name.value.trim()); } catch (e) { /* ignore */ }
@@ -160,7 +160,7 @@ function helpBox(p) {
       const id = newId("h");
       await upsert("help", { id, plugin: p.id, name: name.value.trim(), where: where.value.trim(), done: false });
       await postNews({ kind: "HELP", plugin: p.id, title: name.value.trim() + " needs help installing " + p.name, body: where.value.trim() ? "Sits at: " + where.value.trim() : "", by: name.value.trim() });
-      closeModal(); toast("Sent. " + (p.madeBy || "They") + " will see your request.");
+      closeModal(); toast("Sent. " + who + " will see your request.");
     } catch (e) { err.textContent = e.message; }
   };
   if (!p.helpOn && p.helpOn !== undefined) return h("div", { class: "panel tint" }, h("h3", { text: "Need help?" }), h("p", { text: "Ask " + who + " in person." }));
