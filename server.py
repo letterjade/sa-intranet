@@ -91,6 +91,34 @@ FIXES = [("2026-10-27-rhino-voronoi", _add_office_catalog),
          ("2026-10-28-claude-ai-text", _fix_claude_ai)]
 
 
+def _concise_plugin_cards(d):
+    updates = {
+    "jadetools": {
+        "description": "AI assistance, automatic annotation cleanup and everyday Revit tools.",
+        "location": "S:\\CADResources\\Revit\\SA Library\\2026 Revit Automation PluginTool\\JadeTools.extension"
+    },
+    "jadetools-autocad": {
+        "name": "Jade Drafting Tools",
+        "description": "Measure rooms, update area labels and speed up AutoCAD drafting."
+    },
+    "snydex-details": {
+        "description": "Save and reuse Revit details and sheets, and coordinate drawing references."
+    },
+    "adobe-library": {
+        "description": "Ready-to-use Photoshop assets and Illustrator architectural graphics."
+    },
+    "rhino-voronoi": {
+        "description": "Create Voronoi patterns and wrap them onto surfaces."
+    }
+}
+    for plugin in d.get("plugins", []):
+        if plugin.get("id") in updates:
+            plugin.update(updates[plugin["id"]])
+
+
+FIXES.append(("2026-10-27-concise-plugin-cards", _concise_plugin_cards))
+
+
 def migrate(d):
     done = set(d.get("fixes", []))
     changed = False
