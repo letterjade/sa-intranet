@@ -9,7 +9,7 @@ function startDraft(id, software) {
   const p = id ? pluginById(id) : null;
   draft = p
     ? { ...JSON.parse(JSON.stringify(p)), tools: toolsOf(p.id).map(t => ({ ...t })), isNew: false, notify: false }
-    : { id: newId("p"), name: "", madeBy: localStorage.getItem("sa.name") || "", software: software || "Revit", description: "", runsIn: "", version: "", location: "", package: null, command: "", installNotes: "", helpOn: true, logo: "", workflow: [], tools: [], isNew: true, notify: true };
+    : { id: newId("p"), name: "", madeBy: "", software: software || "Revit", description: "", runsIn: "", version: "", location: "", package: null, command: "", installNotes: "", helpOn: true, logo: "", workflow: [], tools: [], isNew: true, notify: true };
   draftKey = (id || "new") + "|" + (software || "");
 }
 
