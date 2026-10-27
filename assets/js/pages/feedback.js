@@ -11,7 +11,7 @@ export function feedbackWindow(tool) {
     const name = h("input", { id: "feedback-name-" + suffix, value: "", maxlength: 60, autocomplete: "off", required: true });
     const body = h("textarea", { id: "feedback-body-" + suffix, rows: 3, maxlength: 4000, required: true, placeholder: parent ? "Write a reply…" : "Report a bug, suggest an improvement, or share feedback…" });
     const error = h("p", { class: "err", role: "alert" });
-    const button = h("button", { class: "btn primary", type: "submit", disabled: !canEdit() }, parent ? "Post reply" : "Post feedback");
+    const button = h("button", { class: "btn primary", type: "submit", disabled: !canEdit() }, parent ? "Post reply" : "Post comment");
     return h("form", { class: "stack feedback-form", autocomplete: "off", onsubmit: async e => {
       e.preventDefault();
       if (!name.value.trim() || !body.value.trim()) { error.textContent = "Enter your name and a comment."; return; }
@@ -21,7 +21,7 @@ export function feedbackWindow(tool) {
         name.value = ""; body.value = ""; refresh(); toast(parent ? "Reply posted" : "Feedback posted");
       } catch (e) { error.textContent = e.message; }
       finally { button.disabled = !canEdit(); }
-    } }, field("Your name", name), field(parent ? "Reply" : "Feedback", body), error, button);
+    } }, field("Your name", name), field(parent ? "Reply" : "Comment", body), error, button);
   };
   const comment = row => h("div", { class: "feedback-comment" },
     h("div", { class: "meta" }, h("b", { text: row.author }), " · ", h("time", { datetime: new Date(row.createdAt).toISOString(), title: new Date(row.createdAt).toLocaleString(), text: when(row.createdAt) })),
@@ -44,7 +44,7 @@ export function feedbackWindow(tool) {
     }) : [h("p", { class: "empty", text: "No feedback yet. Start the discussion." })]));
   };
   refresh();
-  const dialog = openModal([modalHead("Feedback · " + tool.name, "Share feedback and reply to coworkers. Anyone in the office can update a discussion's status."),
+  const dialog = openModal([modalHead("Comments & discussion · " + tool.name, "Share feedback and reply to coworkers. Anyone in the office can update a discussion's status."),
     canEdit() ? form(null) : h("p", { class: "note", text: "Start the SA Intranet server to post feedback." }), list]);
   active = { dialog, refresh };
   dialog.addEventListener("close", () => {

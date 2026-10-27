@@ -58,7 +58,7 @@ function toolsList(p, tools, root, id) {
         h("div", { class: "top" }, h("span", { class: "ti" }, img(t.icon, () => icon("bolt"))),
           h("div", { class: "nm" }, h("h4", { text: t.name }), h("div", { class: "panelname", text: (t.panel || "") + (t.panel ? " panel" : "") })), t.beta ? h("span", { class: "beta", text: "BETA" }) : null),
         h("p", { class: "short", text: t.short || t.description || "" }),
-        h("span", { class: "how", text: "How to use · Feedback (" + feedbackCount(t.id) + ") →" })))));
+        h("span", { class: "how", text: "How to use · Comments (" + feedbackCount(t.id) + ") →" })))));
   }
   if (!tools.length) box.append(h("p", { class: "empty", text: "No tools listed yet." }));
   return box;
@@ -71,7 +71,10 @@ function toolDetail(p, t) {
     h("div", { class: "hd" }, h("span", { class: "big" }, img(t.icon, () => icon("bolt"))), h("div", { style: "min-width:0" }, h("h3", { text: t.name }), h("div", { class: "where", text: t.command || [p.name, t.panel, t.name].filter(Boolean).join(" › ") }))),
     h("p", { class: "what", text: t.description || t.short || "" }),
     steps.length ? [h("b", { style: "font-weight:500;font-size:1.18rem;margin-top:.4rem", text: "How to use" }), h("ol", { class: "steps" }, steps.map(x => h("li", { text: x })))] : null,
-    h("button", { class: "btn", type: "button", onclick: () => feedbackWindow(t) }, "Feedback (" + feedbackCount(t.id) + ")"),
+    h("section", { class: "panel soft", style: "margin-top:.5rem;gap:.6rem", "aria-label": "Tool comments and discussion" },
+      h("h4", { text: "Comments & discussion" }),
+      h("p", { text: "Report an issue, suggest an improvement, or reply to colleagues about this tool." }),
+      h("button", { class: "btn primary", type: "button", onclick: () => feedbackWindow(t) }, "Open discussion (" + feedbackCount(t.id) + ")")),
     t.beta ? h("p", { class: "note", text: "Beta: still being tested. Tell " + (p.madeBy || "the maker") + " if something looks wrong." }) : null);
 }
 
