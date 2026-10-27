@@ -11,7 +11,7 @@ Standard library only (Python 3.8+), nothing to install.
 Office network only. There are no logins: anyone who can reach the
 address can add, edit and delete entries.
 """
-import argparse, datetime, json, os, re, shutil, sys, threading, time, uuid
+import argparse, datetime, json, mimetypes, os, re, shutil, socket, sys, threading, time, uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
 
@@ -31,6 +31,14 @@ ALLOWED_EXT = {
 }
 HIDDEN = {"server.py", "data.seed.json"}
 LOCK = threading.Lock()
+
+# Windows sometimes registers .js as "text/plain", which makes browsers refuse
+# to run the page's scripts (you get a blank page). Force the right types.
+TYPES = {".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
+         ".svg": "image/svg+xml", ".woff2": "font/woff2", ".json": "application/json",
+         ".png": "image/png", ".html": "text/html"}
+for _ext, _type in TYPES.items():
+    mimetypes.add_type(_type, _ext)
 
 
 # ---------------------------------------------------------------- data file
@@ -161,6 +169,8 @@ def scan_extension(path, plugin_id):
 
 # ------------------------------------------------------------------ server
 class Handler(SimpleHTTPRequestHandler):
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map, **TYPES}
+
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=ROOT, **kw)
 
@@ -240,14 +250,66 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_error(404)
 
 
+class Server(ThreadingHTTPServer):
+    # On Windows, "reuse address" lets two programs share a port silently.
+    # Turn it off there so we get a clear error if 8080 is already taken.
+    allow_reuse_address = os.name != "nt"
+    daemon_threads = True
+
+    def server_bind(self):
+        # Listen on IPv6 and IPv4 together, so both http://localhost (which
+        # Windows treats as IPv6 ::1) and http://127.0.0.1 / 192.168.x.x work.
+        if self.address_family == socket.AF_INET6:
+            try:
+                self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+            except (AttributeError, OSError):
+                pass
+        super().server_bind()
+
+
+def this_computers_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("192.168.100.1", 80))     # no data is sent; just picks the office network card
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        try:
+            return socket.gethostbyname(socket.gethostname())
+        except Exception:
+            return "<this-computer's-IP>"
+
+
 def main():
     ap = argparse.ArgumentParser(description="SA Intranet server")
     ap.add_argument("--port", type=int, default=8080)
-    ap.add_argument("--host", default="0.0.0.0")
+    ap.add_argument("--host", default="")
     a = ap.parse_args()
     load()  # create data.json from the seed on first run
-    srv = ThreadingHTTPServer((a.host, a.port), Handler)
-    print("SA Intranet running on port %d. Open http://<this-computer's-IP>:%d/  (Ctrl+C to stop)" % (a.port, a.port))
+    try:
+        if a.host:
+            srv = Server((a.host, a.port), Handler)
+        else:
+            try:
+                Server.address_family = socket.AF_INET6
+                srv = Server(("::", a.port), Handler)       # IPv6 + IPv4
+            except OSError:
+                Server.address_family = socket.AF_INET
+                srv = Server(("0.0.0.0", a.port), Handler)  # IPv4 only
+    except OSError as e:
+        print("Couldn't start on port %d: %s" % (a.port, e))
+        print("Something else is already using that port. Try:  python server.py --port 8090")
+        input("Press Enter to close.")
+        return
+    ip = this_computers_ip()
+    print("SA Intranet is running on THIS computer (%s), from folder:" % socket.gethostname())
+    print("   " + ROOT)
+    print("")
+    print("   On this computer:     http://localhost:%d/" % a.port)
+    print("   From other computers: http://%s:%d/" % (ip, a.port))
+    print("")
+    print("Keep this window open. Close it or press Ctrl+C to stop the site.")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
