@@ -124,3 +124,16 @@ Update-from-GitHub.bat   get the latest code on the server
 The office catalogue includes JadeTools for AutoCAD, Snyder Detail Library and Jade’s Adobe templates. Categories appear in this order: Revit, AutoCAD, Adobe, Rhino / Grasshopper, Other. Shared folders are displayed with Copy path controls; paste paths into File Explorer.
 
 After pulling this update, restart server.py. A one-time migration adds missing entries from office-catalog.json to the live data.json without replacing existing records or office edits. Fresh installations receive the same entries from data.seed.json. The Adobe contents reflect the supplied folder screenshot; compatibility and runtime behaviour of the uploaded plugins have not been independently tested in their host applications.
+
+
+### Tool feedback
+
+Each tool has a Feedback button in its detail panel and a comment count on its card.
+Post a discussion, reply to an existing discussion, or set its status to Open,
+In progress, or Resolved. Names start blank and are not remembered. There are
+no accounts: names are self-entered and anyone in the office can change status.
+Comments are saved in the server's existing data.json, daily backups, and change
+log. Existing live data is preserved. New feedback appears within the usual
+20-second refresh interval; reply drafts stay intact during refresh.
+
+After pulling this update, restart server.py and refresh the browser.

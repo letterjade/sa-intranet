@@ -426,3 +426,14 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 .pyrevit-setup{background:#f2f2f2;gap:.8rem}
 .pyrevit-setup details[open] summary{margin-bottom:.8rem}
 .pyrevit-setup details>.btn{margin-top:.8rem}
+
+/* Per-tool feedback discussions */
+.feedback-list { margin-top: 1.5rem; }
+.feedback-form { gap: .65rem; }
+.feedback-thread { gap: .9rem; }
+.feedback-comment { min-width: 0; }
+.feedback-text { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: .45rem; }
+.feedback-replies { border-left: 2px solid var(--line, #ddd); padding-left: 1rem; display: grid; gap: 1rem; }
+.feedback-replies:empty { display: none; }
+.feedback-thread summary { cursor: pointer; font-weight: 500; }
+.feedback-thread details[open] summary { margin-bottom: .8rem; }

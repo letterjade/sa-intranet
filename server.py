@@ -24,7 +24,7 @@ BACKUPS = os.path.join(ROOT, "backups")
 UPLOADS = os.path.join(ROOT, "uploads")
 CHANGES = os.path.join(ROOT, "changes.jsonl")   # one line per change, newest last
 ADMIN = os.path.join(ROOT, "admin.json")        # PIN (hashed) + admin sign-ins
-COLLS = ("links", "plugins", "tools", "wishes", "news", "help")
+COLLS = ("links", "plugins", "tools", "wishes", "news", "help", "feedback")
 MAX_UPLOAD = 50 * 1024 * 1024
 ALLOWED_EXT = {
     ".png", ".jpg", ".jpeg", ".gif", ".webp",                      # images
@@ -168,9 +168,35 @@ def apply_op(d, op, rec=None):
     note = lambda coll, rid, before, after: None if _same(before, after) else rec.append(
         {"coll": coll, "id": rid, "before": before, "after": copy.deepcopy(after)})
     kind = op.get("op")
-    if kind == "upsert":
+    if kind == "feedback-post":
+        tool = op.get("tool")
+        if not any(t.get("id") == tool for t in d["tools"]):
+            raise ValueError("Tool not found. Refresh the page.")
+        author, body = op.get("author"), op.get("body")
+        if not isinstance(author, str) or not author.strip() or len(author) > 60:
+            raise ValueError("Enter your name (up to 60 characters).")
+        if not isinstance(body, str) or not body.strip() or len(body) > 4000:
+            raise ValueError("Enter a comment (up to 4000 characters).")
+        parent = op.get("parent") or None
+        if parent and not any(r.get("id") == parent and r.get("tool") == tool and not r.get("parent") for r in d["feedback"]):
+            raise ValueError("Discussion not found. Refresh the page.")
+        row = {"id": uuid.uuid4().hex, "tool": tool, "parent": parent,
+               "author": author.strip(), "body": body.strip(), "createdAt": now_ms(), "status": "Open"}
+        d["feedback"].append(row)
+        note("feedback", row["id"], None, row)
+    elif kind == "feedback-status":
+        status = op.get("status")
+        if status not in ("Open", "In progress", "Resolved"):
+            raise ValueError("Invalid discussion status.")
+        row = next((r for r in d["feedback"] if r.get("id") == op.get("id") and not r.get("parent")), None)
+        if row is None:
+            raise ValueError("Discussion not found.")
+        before = copy.deepcopy(row)
+        row.update(status=status, updatedAt=now_ms())
+        note("feedback", row["id"], before, row)
+    elif kind == "upsert":
         coll, item = op.get("coll"), op.get("item") or {}
-        if coll not in COLLS or not isinstance(item, dict) or not item.get("id"):
+        if coll not in COLLS or coll == "feedback" or not isinstance(item, dict) or not item.get("id"):
             raise ValueError("bad upsert")
         item["updatedAt"] = now_ms()
         rows = d[coll]
@@ -184,7 +210,7 @@ def apply_op(d, op, rec=None):
         note(coll, item["id"], None, item)
     elif kind == "delete":
         coll, rid = op.get("coll"), op.get("id")
-        if coll not in COLLS:
+        if coll not in COLLS or coll == "feedback":
             raise ValueError("bad delete")
         for r in d[coll]:
             if r.get("id") == rid:

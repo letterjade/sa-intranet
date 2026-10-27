@@ -6,7 +6,7 @@
 export const state = { mode: "loading", data: emptyData() };
 
 function emptyData() {
-  return { rev: 0, links: [], plugins: [], tools: [], wishes: [], news: [], help: [] };
+  return { rev: 0, links: [], plugins: [], tools: [], wishes: [], news: [], help: [], feedback: [] };
 }
 function setData(d) {
   const { server, ...rest } = d || {};
