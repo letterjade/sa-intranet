@@ -35,6 +35,17 @@
    "resourceOnly": true,
    "runsIn": "Adobe Photoshop · Adobe Illustrator",
    "installNotes": "Inside the shared folder, open Jade's Templates PSD AI. Contents listed here are based on the supplied folder screenshot; template files were not included for inspection."
+  },
+  {
+   "id": "rhino-voronoi",
+   "name": "Voronoi Pattern",
+   "software": "Rhino",
+   "description": "Create a Voronoi cell pattern, scale and extrude the cells, and morph the result onto a surface.",
+   "location": "S:\\CADResources\\Rhino",
+   "madeBy": "Jade Wong",
+   "runsIn": "Rhino / Grasshopper · confirm compatibility in your installed version",
+   "helpOn": true,
+   "installNotes": "Open Voronoi Pattern_re.gh from the shared Rhino folder. Component metadata was inspected; the definition has not been executed in Rhino during this update."
   }
  ],
  "tools": [
@@ -334,6 +345,17 @@
    "howto": "Copy the library path from Install and open it in File Explorer.\nOpen Jade's Templates PSD AI, then Illustrator Architecture Components.ai.\nCopy the required file into your project folder before editing.",
    "command": "B:\\Marketing Materials\\Adobe PS AI Library\\Jade's Templates PSD AI\\Illustrator Architecture Components.ai",
    "order": 26
+  },
+  {
+   "id": "rhino-voronoi-pattern",
+   "plugin": "rhino-voronoi",
+   "name": "Voronoi Pattern",
+   "panel": "Patterns",
+   "short": "Generate, extrude and surface-morph Voronoi cells.",
+   "description": "The definition contains surface dimensions, a rectangle, Populate 2D, Voronoi, Scale, Boundary Surfaces, Extrude, Bounding Box and Surface Morph components. It builds a planar cell pattern and maps geometry onto a target surface.",
+   "howto": "Open S:\\CADResources\\Rhino in File Explorer and copy Voronoi Pattern_re.gh into your project folder.\nOpen the copied .gh file in Grasshopper.\nSet the Surface input to your target Rhino surface if the saved surface is unsuitable.\nAdjust the sliders connected to point count, random seed, scale and extrusion; review the pattern and mapped result.\nBake the desired output when ready to work with it in Rhino.",
+   "command": "Grasshopper › File › Open › Voronoi Pattern_re.gh",
+   "order": 0
   }
  ]
 }

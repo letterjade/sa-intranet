@@ -409,3 +409,6 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 @media (max-width:900px){.stats{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.atable{display:block;overflow-x:auto}}
 
 .sw-adobe{--sw:#8b3b87;--sw-tint:#f7edf6}
+
+/* Use the same neutral fill for every software category. */
+.sw-revit,.sw-autocad,.sw-adobe,.sw-rhino,.sw-other{--sw-tint:#f2f2f2}

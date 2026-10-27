@@ -125,6 +125,13 @@ function installSteps(p) {
       li(h("span", null, "Under ", h("b", { style: "font-weight:500", text: "Startup Suite" }), " click ", h("kbd", { text: "Contents…" }), " › ", h("kbd", { text: "Add…" }), ", pick the ", h("kbd", { text: ".lsp" }), " file, then ", h("kbd", { text: "Close" }), ". It now loads every time AutoCAD starts.")),
       p.command ? li(h("span", { text: "Type the command to run it:" }), h("span", { class: "typethis", text: p.command })) : null,
     ];
+  } else if (s.id === "Rhino" && p.location) {
+    steps = [
+      li(h("span", { text: "Open the shared Rhino folder in File Explorer:" }), copyBox(p.location)),
+      li(h("span", { text: "Copy the Grasshopper definition into your project folder before editing." })),
+      li(h("span", null, "Open Rhino, run ", h("kbd", { text: "Grasshopper" }), ", then File › Open and choose the .gh file.")),
+      li(h("span", { text: "Set the required Rhino geometry inputs, adjust sliders, and review the preview. Bake the output when you need editable Rhino objects." })),
+    ];
   } else if (s.id === "Rhino") {
     steps = [
       li(h("span", { text: "Download the scripts:" }), download()),
@@ -142,7 +149,7 @@ function installSteps(p) {
 }
 
 function helpBox(p) {
-  const name = h("input", { id: "hName", maxlength: "60", placeholder: "e.g. Priya", value: localStorage.getItem("sa.name") || "" });
+  const name = h("input", { id: "hName", maxlength: "60", placeholder: "Your name", value: "" });
   const where = h("input", { id: "hWhere", maxlength: "80", placeholder: "e.g. 3rd floor, by the window" });
   const err = h("p", { class: "err" });
   const who = p.madeBy || "Someone who knows the plugin";

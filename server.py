@@ -85,7 +85,8 @@ def _add_office_catalog(d):
                 existing.add(row["id"])
 
 
-FIXES = [("2026-10-27-office-catalog", _add_office_catalog),
+FIXES = [("2026-10-27-rhino-voronoi", _add_office_catalog),
+         ("2026-10-27-office-catalog", _add_office_catalog),
          ("2026-10-28-snydex-description", _fix_snydex),
          ("2026-10-28-claude-ai-text", _fix_claude_ai)]
 
