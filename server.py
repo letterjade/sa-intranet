@@ -63,7 +63,15 @@ def _fix_snydex(d):
         if l.get("id") == "l-snydex" and l.get("description") in ("Office web app", "", None):
             l["description"] = "Snyder AI web"
 
-FIXES = [("2026-10-28-snydex-description", _fix_snydex)]
+CLAUDE_AI_TEXT = ("Modeless Claude assistant with local parameter editing, parameter copying, type changes, "
+                  "rotation, moving/copying, wall creation and view operations.")
+def _fix_claude_ai(d):
+    for t in d.get("tools", []):
+        if t.get("id") == "jt-ai-operator":
+            t.update(description=CLAUDE_AI_TEXT, short=CLAUDE_AI_TEXT, howto="")
+
+FIXES = [("2026-10-28-snydex-description", _fix_snydex),
+         ("2026-10-28-claude-ai-text", _fix_claude_ai)]
 
 
 def migrate(d):

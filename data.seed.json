@@ -154,8 +154,8 @@
    "plugin": "jadetools",
    "name": "Claude AI",
    "panel": "AI",
-   "description": "Modeless Claude assistant with local parameter editing, parameter copying, type changes, rotation, moving/copying, wall creation and view operations. Review changes, then Keep or Restore. Run Configure-Claude.ps1 first.",
-   "howto": "1. One-time setup: run Configure-Claude.ps1, then Reserve-LocalUrl.ps1, from the ClaudeGateway folder.\n2. Run Start-Claude-Gateway.ps1 and keep its window open.\n3. In Revit, select the elements you want to work on, click Jade Cleaner > AI, and type what you want done.\n4. Review the changes, then click Keep or Restore.",
+   "description": "Modeless Claude assistant with local parameter editing, parameter copying, type changes, rotation, moving/copying, wall creation and view operations.",
+   "howto": "",
    "command": "Jade Cleaner › AI › AI",
    "keywords": "claude ai chat assistant automate",
    "beta": false,
@@ -163,7 +163,7 @@
    "order": 0,
    "createdAt": 1793000000000,
    "updatedAt": 1793000000000,
-   "short": "Ask Claude to make changes in your model."
+   "short": "Modeless Claude assistant with local parameter editing, parameter copying, type changes, rotation, moving/copying, wall creation and view operations."
   },
   {
    "id": "jt-move-leadered-dim-text",

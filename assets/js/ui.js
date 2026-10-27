@@ -65,8 +65,8 @@ export function img(src, fallback) {
 
 export const SOFTWARE = [
   { id: "Revit", cls: "sw-revit", help: "Plugins that run inside Revit", sub: "pyRevit, add-ins" },
-  { id: "Rhino", cls: "sw-rhino", help: "Plugins and Grasshopper scripts for Rhino", sub: "scripts, components", label: "Rhino / Grasshopper" },
   { id: "AutoCAD", cls: "sw-autocad", help: "LISP routines and add-ins for AutoCAD", sub: "LISP routines" },
+  { id: "Rhino", cls: "sw-rhino", help: "Plugins and Grasshopper scripts for Rhino", sub: "scripts, components", label: "Rhino / Grasshopper" },
   { id: "Other", cls: "sw-other", help: "Anything else", sub: "anything else" },
 ];
 export const sw = id => SOFTWARE.find(s => s.id === id) || SOFTWARE[3];
