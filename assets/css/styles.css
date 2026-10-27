@@ -407,3 +407,5 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;align-items:start}
 .two-col input{padding:.55rem .75rem;border:1.5px solid var(--rule);border-radius:.45rem}
 @media (max-width:900px){.stats{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.atable{display:block;overflow-x:auto}}
+
+.sw-adobe{--sw:#8b3b87;--sw-tint:#f7edf6}

@@ -76,7 +76,7 @@ function toolDetail(p, t) {
 function getIt(p) {
   return h("div", { class: "panel soft", style: "gap:.7rem" },
     h("span", { class: "eyebrow", style: "color:var(--gray)", text: "Get it" }),
-    h("p", { style: "font-size:.95rem;color:var(--body)", text: "Click Install for step-by-step instructions, or ask " + (p.madeBy || "the maker") + " to set it up for you." }),
+    h("p", { style: "font-size:.95rem;color:var(--body)", text: (p.resourceOnly ? "Click Install for shared-folder access instructions, or ask " : "Click Install for step-by-step instructions, or ask ") + (p.madeBy || "the maker") + " to set it up for you." }),
     h("button", { class: "btn primary", type: "button", onclick: () => installWindow(p) }, "Install"));
 }
 
@@ -93,7 +93,13 @@ function installSteps(p) {
     : h("p", { class: "note", text: "The package hasn't been uploaded yet. Use “Ask for help”." });
   const li = (...kids) => h("li", null, h("div", { class: "tx" }, ...kids));
   let steps;
-  if (s.id === "Revit") {
+  if (p.resourceOnly) {
+    steps = [
+      li(h("span", { text: "Copy the shared folder path:" }), copyBox(p.location || "")),
+      li(h("span", { text: "Paste it into File Explorer's address bar and press Enter. You need access to the office shared drive." })),
+      li(h("span", { text: "Copy the template you need into your project folder. Open PSD files in Photoshop and AI files in Illustrator, keeping the shared originals intact." })),
+    ];
+  } else if (s.id === "Revit") {
     const folder = p.location ? parentFolder(p.location) : "";
     steps = [
       li(h("span", null, "Open Revit and check you have a ", h("kbd", { text: "pyRevit" }), " tab at the top. No pyRevit tab? Use “Ask for help”.")),
@@ -101,7 +107,15 @@ function installSteps(p) {
       li(h("span", null, "In Revit click ", h("kbd", { text: "pyRevit" }), " › ", h("kbd", { text: "Settings" }), ". Find ", h("b", { style: "font-weight:500", text: "Custom Extension Directories" }), ", click ", h("kbd", { text: "Add folder" }), ", paste the path, then click ", h("kbd", { text: "Save Settings" }), "."),
         h("div", { class: "mock", "aria-hidden": "true" }, h("b", { text: "pyRevit Settings" }), h("span", { text: "Custom Extension Directories" }), h("div", { class: "list" }, h("span", { class: "hl", text: folder || "\\\\server\\folder" })),
           h("div", { class: "bt" }, h("span", { class: "on", text: "Add folder" }), h("span", { text: "Remove" }), h("span", { class: "on", text: "Save Settings" })))),
-      li(h("span", null, "Click ", h("kbd", { text: "pyRevit" }), " › ", h("kbd", { text: "Reload" }), ". A new ", h("b", { style: "font-weight:500", text: p.name }), " tab appears in Revit. Done.")),
+      li(h("span", null, "Click ", h("kbd", { text: "pyRevit" }), " › ", h("kbd", { text: "Reload" }), ". A new ", h("b", { style: "font-weight:500", text: p.ribbonTab || p.name }), " tab appears in Revit. Done.")),
+    ];
+  } else if (s.id === "AutoCAD" && p.location) {
+    steps = [
+      li(h("span", { text: "Open the shared folder in File Explorer:" }), copyBox(p.location)),
+      li(h("span", null, "In AutoCAD, type ", h("kbd", { text: "APPLOAD" }), " and load Install_JadeTools.lsp from that folder.")),
+      li(h("span", { text: "When prompted, select JadeTools.lsp from the same shared folder. The JadeTools ribbon appears." })),
+      li(h("span", { text: "If AutoCAD requests trusted paths, ask IT to trust this folder and its source subfolder. Keep SECURELOAD enabled." })),
+      li(h("span", { text: "Click a ribbon tool to load updated code. Run JTUPDATE after new buttons or icons are published." })),
     ];
   } else if (s.id === "AutoCAD") {
     steps = [

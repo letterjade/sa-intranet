@@ -74,7 +74,19 @@ def _fix_claude_ai(d):
         if t.get("id") == "jt-ai-operator":
             t.update(description=CLAUDE_AI_TEXT, short=CLAUDE_AI_TEXT, howto="")
 
-FIXES = [("2026-10-28-snydex-description", _fix_snydex),
+def _add_office_catalog(d):
+    with open(os.path.join(ROOT, "office-catalog.json"), encoding="utf-8") as f:
+        catalog = json.load(f)
+    for coll in ("plugins", "tools"):
+        existing = {row.get("id") for row in d.setdefault(coll, [])}
+        for row in catalog[coll]:
+            if row["id"] not in existing:
+                d[coll].append(copy.deepcopy(row))
+                existing.add(row["id"])
+
+
+FIXES = [("2026-10-27-office-catalog", _add_office_catalog),
+         ("2026-10-28-snydex-description", _fix_snydex),
          ("2026-10-28-claude-ai-text", _fix_claude_ai)]
 
 

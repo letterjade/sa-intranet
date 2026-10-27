@@ -118,3 +118,9 @@ data.seed.json           starting data
 Start-SA-Intranet.bat    start the server on Windows
 Update-from-GitHub.bat   get the latest code on the server
 ```
+
+## Office catalogue update
+
+The office catalogue includes JadeTools for AutoCAD, Snyder Detail Library and Jade’s Adobe templates. Categories appear in this order: Revit, AutoCAD, Adobe, Rhino / Grasshopper, Other. Shared folders are displayed with Copy path controls; paste paths into File Explorer.
+
+After pulling this update, restart server.py. A one-time migration adds missing entries from office-catalog.json to the live data.json without replacing existing records or office edits. Fresh installations receive the same entries from data.seed.json. The Adobe contents reflect the supplied folder screenshot; compatibility and runtime behaviour of the uploaded plugins have not been independently tested in their host applications.

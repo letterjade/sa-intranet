@@ -70,6 +70,7 @@ export function render(root, id, software) {
       got,
       s.id === "AutoCAD" ? field("Command people type to start it", inp("command", { max: 30, ph: "e.g. LK" }), "Shown in the install steps: “Type LK and press Enter”.") : null);
   }
+  if (s.id !== "Revit") step2.append(field("Shared folder path (optional)", inp("location", { max: 300, mono: true, ph: "e.g. S:\\Resources\\Shared tools" }), "People can copy this path into File Explorer."));
   const notes = field("Anything else people should know when installing? (optional)", inp("installNotes", { area: true, max: 600, ph: "e.g. Run Configure-Claude.ps1 once before using the AI button." }));
   step2.append(notes);
 
