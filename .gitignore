@@ -1,6 +1,9 @@
 # Live office data stays on the server, not in GitHub
 data.json
 data.json.tmp
+changes.jsonl
+admin.json
+admin.json.tmp
 backups/*
 !backups/.keep
 uploads/*

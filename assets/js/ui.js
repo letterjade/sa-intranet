@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // Small UI helpers shared by every page.
 // ---------------------------------------------------------------------------
+import { state, isAdminHere, local } from "./api.js";
 
 /** h("div", {class:"x", onclick:fn}, child, "text", [more]) → element. Text is always escaped. */
 export function h(tag, attrs, ...kids) {
@@ -123,7 +124,20 @@ export function renderTopbar(active) {
   bar.replaceChildren(h("div", { class: "wrap" },
     h("a", { class: "brand", href: "#/" }, h("span", { class: "s", text: "S" }), h("b", { text: "SA INTRANET" })),
     h("nav", { class: "tabs", "aria-label": "Main" }, TABS.map(([n, href]) =>
-      h("a", { class: "tab", href, "aria-current": n === active ? "page" : null, text: n })))));
+      h("a", { class: "tab", href, "aria-current": n === active ? "page" : null, text: n })),
+      isAdminHere() ? adminTab(active === "Admin") : null)));
+}
+/** Only on a browser where the admin PIN was entered. The red number = things waiting for you. */
+export function adminWaiting() {
+  const seen = local.get("sa.adminSeen", 0);
+  const help = state.data.help.filter(x => !x.done).length;
+  const wishes = state.data.wishes.filter(w => (w.status || "Open") === "Open" && (w.createdAt || 0) > seen).length;
+  return { help, wishes, total: help + wishes };
+}
+function adminTab(current) {
+  const n = adminWaiting().total;
+  return h("a", { class: "tab admin-tab", href: "#/admin", "aria-current": current ? "page" : null, title: n ? n + " waiting for you" : "Admin" },
+    "Admin", n ? h("span", { class: "count", text: String(n) }) : null);
 }
 export function renderBanner(...content) {
   document.getElementById("banner").replaceChildren(content.length ? h("section", { class: "banner" }, h("div", { class: "wrap" }, ...content)) : "");

@@ -73,6 +73,9 @@ setInterval(async () => {
 
 // ---- helpers on the data ----
 export const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+// Plugins in the order they were added (Jade Cleaner first, then each new one after it).
+export const pluginsInOrder = (list = state.data.plugins) => list
+  .map((p, i) => [p, i]).sort(([a, i], [b, j]) => (a.createdAt || 0) - (b.createdAt || 0) || i - j).map(([p]) => p);
 export const pluginById = id => state.data.plugins.find(p => p.id === id);
 export const toolsOf = id => state.data.tools.filter(t => t.plugin === id)
   .sort((a, b) => (a.order ?? 1e15) - (b.order ?? 1e15) || String(a.name).localeCompare(String(b.name)));
@@ -85,3 +88,18 @@ export const local = {
   set(k, v) { store(k, JSON.stringify(v)); },
 };
 export const voterId = (() => { let v = local.get("sa.voter"); if (!v) { v = newId("v"); local.set("sa.voter", v); } return v; })();
+
+// ---- admin (PIN). The token is kept in this browser only. ----
+export const adminToken = () => local.get("sa.adminToken", "");
+export const isAdminHere = () => !!adminToken();
+export async function admin(what, body) {
+  const headers = { "Content-Type": "application/json", "X-Admin-Token": adminToken() };
+  const r = body === undefined && !["status", "logout"].includes(what)
+    ? await fetch("api/admin/" + what, { headers, cache: "no-store" })
+    : await fetch("api/admin/" + what, { method: "POST", headers, body: JSON.stringify(body || {}) });
+  const d = await r.json().catch(() => ({ error: "The server didn't answer. Is it running the latest server.py?" }));
+  if (r.status === 401) { local.set("sa.adminToken", ""); }
+  if (!r.ok) { const e = new Error(d.error || "Something went wrong."); e.status = r.status; throw e; }
+  if (d.rev !== undefined && d.links) { setData(d); listeners.forEach(fn => fn()); }
+  return d;
+}

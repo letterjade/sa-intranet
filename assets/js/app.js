@@ -9,6 +9,7 @@
 //   #/wishlist             Wishlist
 //   #/news                 What's New + alert settings
 //   #/search/<words>       Search
+//   #/admin[/tab]          Admin (PIN): help requests, wishlist, activity, files, backups
 // ---------------------------------------------------------------------------
 import { load, onChange, state } from "./api.js";
 import { h, renderBanner } from "./ui.js";
@@ -21,6 +22,7 @@ import * as systems from "./pages/systems.js";
 import * as wishlist from "./pages/wishlist.js";
 import * as news from "./pages/news.js";
 import * as search from "./pages/search.js";
+import * as adminPage from "./pages/admin.js";
 
 const root = document.getElementById("page");
 
@@ -34,6 +36,7 @@ function route() {
   if (a === "systems") return systems.render(root);
   if (a === "wishlist") return wishlist.render(root);
   if (a === "news") return news.render(root);
+  if (a === "admin") return adminPage.render(root, b);
   if (a === "search") return search.render(root, parts.slice(1).join("/"));
   return home.render(root);
 }

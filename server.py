@@ -9,9 +9,11 @@ Standard library only (Python 3.8+), nothing to install.
     python server.py --port 80     -> http://<this-computer>/
 
 Office network only. There are no logins: anyone who can reach the
-address can add, edit and delete entries.
+address can add, edit and delete entries. Every change is written to
+changes.jsonl, and the Admin page (#/admin, protected by a PIN kept in
+admin.json) shows them and can undo them.
 """
-import argparse, datetime, json, mimetypes, os, re, shutil, socket, sys, threading, time, uuid
+import argparse, copy, datetime, hashlib, hmac, json, mimetypes, os, re, secrets, shutil, socket, sys, threading, time, uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
 
@@ -20,6 +22,8 @@ DATA = os.path.join(ROOT, "data.json")
 SEED = os.path.join(ROOT, "data.seed.json")
 BACKUPS = os.path.join(ROOT, "backups")
 UPLOADS = os.path.join(ROOT, "uploads")
+CHANGES = os.path.join(ROOT, "changes.jsonl")   # one line per change, newest last
+ADMIN = os.path.join(ROOT, "admin.json")        # PIN (hashed) + admin sign-ins
 COLLS = ("links", "plugins", "tools", "wishes", "news", "help")
 MAX_UPLOAD = 50 * 1024 * 1024
 ALLOWED_EXT = {
@@ -29,7 +33,7 @@ ALLOWED_EXT = {
     ".lsp", ".fas", ".vlx", ".dcl", ".mnl", ".cuix",               # AutoCAD
     ".gh", ".ghx", ".ghuser", ".rhp",                              # Rhino / Grasshopper
 }
-HIDDEN = {"server.py", "data.seed.json"}
+HIDDEN = {"server.py", "data.seed.json", "admin.json", "changes.jsonl"}
 LOCK = threading.Lock()
 
 # Windows sometimes registers .js as "text/plain", which makes browsers refuse
@@ -101,7 +105,18 @@ def now_ms():
     return int(time.time() * 1000)
 
 
-def apply_op(d, op):
+def _same(a, b):
+    """True if two rows only differ in updatedAt."""
+    strip = lambda r: {k: v for k, v in (r or {}).items() if k != "updatedAt"}
+    return strip(a) == strip(b)
+
+
+def apply_op(d, op, rec=None):
+    """Apply one change. If rec is a list, each row it touches is added to it as
+    {coll, id, before, after} (before=None: added, after=None: deleted)."""
+    rec = rec if rec is not None else []
+    note = lambda coll, rid, before, after: None if _same(before, after) else rec.append(
+        {"coll": coll, "id": rid, "before": before, "after": copy.deepcopy(after)})
     kind = op.get("op")
     if kind == "upsert":
         coll, item = op.get("coll"), op.get("item") or {}
@@ -112,31 +127,150 @@ def apply_op(d, op):
         for i, r in enumerate(rows):
             if r.get("id") == item["id"]:
                 merged = dict(r); merged.update(item); rows[i] = merged
+                note(coll, item["id"], copy.deepcopy(r), merged)
                 return
         item.setdefault("createdAt", item["updatedAt"])
         rows.append(item)
+        note(coll, item["id"], None, item)
     elif kind == "delete":
         coll, rid = op.get("coll"), op.get("id")
         if coll not in COLLS:
             raise ValueError("bad delete")
+        for r in d[coll]:
+            if r.get("id") == rid:
+                note(coll, rid, copy.deepcopy(r), None)
         d[coll] = [r for r in d[coll] if r.get("id") != rid]
         if coll == "plugins":                 # a plugin's tools go with it
+            for t in d["tools"]:
+                if t.get("plugin") == rid:
+                    note("tools", t.get("id"), copy.deepcopy(t), None)
             d["tools"] = [t for t in d["tools"] if t.get("plugin") != rid]
     elif kind == "vote":
         wid, voter, on = op.get("wish"), str(op.get("voter") or "")[:64], bool(op.get("on"))
         for w in d["wishes"]:
             if w.get("id") == wid:
+                before = copy.deepcopy(w)
                 v = [x for x in w.get("voters", []) if x != voter]
                 if on and voter:
                     v.append(voter)
                 w["voters"] = v
+                note("wishes", wid, before, w)
                 return
         raise ValueError("no such request")
     elif kind == "batch":                     # several ops saved together
         for o in op.get("ops", [])[:200]:
-            apply_op(d, o)
+            apply_op(d, o, rec)
     else:
         raise ValueError("unknown op")
+
+
+def put_row(d, coll, rid, row):
+    """Set a row exactly (row=None removes it). Used by Undo and Restore."""
+    rows = [r for r in d.get(coll, []) if r.get("id") != rid]
+    if row is not None:
+        old = next((i for i, r in enumerate(d.get(coll, [])) if r.get("id") == rid), None)
+        rows.insert(old if old is not None else len(rows), row)
+    d[coll] = rows
+
+
+# --------------------------------------------------------------- change log
+LOG_LOCK = threading.Lock()
+PC_NAMES = {}                                  # ip -> computer name (looked up in the background)
+
+
+def client_ip(handler):
+    ip = handler.client_address[0]
+    return ip[7:] if ip.startswith("::ffff:") else ip
+
+
+def computer_name(ip):
+    if ip in ("127.0.0.1", "::1"):
+        return "this computer (" + socket.gethostname() + ")"
+    if ip not in PC_NAMES:
+        PC_NAMES[ip] = ""
+        def look():
+            try:
+                PC_NAMES[ip] = socket.gethostbyaddr(ip)[0].split(".")[0].upper()
+            except Exception:
+                pass
+        threading.Thread(target=look, daemon=True).start()
+    return PC_NAMES.get(ip, "")
+
+
+def log_change(entry, ip):
+    entry = {"id": uuid.uuid4().hex[:10], "t": now_ms(), "ip": ip, "pc": computer_name(ip), **entry}
+    with LOG_LOCK:
+        with open(CHANGES, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return entry
+
+
+def read_log():
+    if not os.path.exists(CHANGES):
+        return []
+    out = []
+    with LOG_LOCK:
+        with open(CHANGES, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    out.append(json.loads(line))
+                except ValueError:
+                    pass
+    return out
+
+
+# ------------------------------------------------------------------ admin PIN
+FAILS = {}                                     # ip -> [count, first-fail time]
+
+
+def admin_cfg():
+    try:
+        with open(ADMIN, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def admin_save(cfg):
+    tmp = ADMIN + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=1)
+    os.replace(tmp, ADMIN)
+
+
+def pin_hash(pin, salt):
+    return hashlib.pbkdf2_hmac("sha256", pin.encode("utf-8"), bytes.fromhex(salt), 120000).hex()
+
+
+def token_hash(tok):
+    return hashlib.sha256(tok.encode("utf-8")).hexdigest()
+
+
+def new_token(cfg, days):
+    tok = secrets.token_urlsafe(24)
+    now = now_ms()
+    toks = {k: v for k, v in cfg.get("tokens", {}).items() if v > now}
+    toks[token_hash(tok)] = now + int(days * 86400000)
+    cfg["tokens"] = toks
+    admin_save(cfg)
+    return tok
+
+
+def is_admin(handler):
+    tok = handler.headers.get("X-Admin-Token") or ""
+    exp = admin_cfg().get("tokens", {}).get(token_hash(tok)) if tok else None
+    return bool(exp and exp > now_ms())
+
+
+def where_used(d, path):
+    """Which request / plugin / post points at an uploaded file."""
+    out = []
+    labels = {"wishes": "Request", "plugins": "Plugin", "tools": "Tool", "news": "Post", "help": "Help request", "links": "Shortcut"}
+    for coll, label in labels.items():
+        for r in d.get(coll, []):
+            if path in json.dumps(r, ensure_ascii=False):
+                out.append({"coll": coll, "id": r.get("id"), "label": label, "title": r.get("title") or r.get("name") or r.get("id")})
+    return out
 
 
 # ------------------------------------------------------- pyRevit folder scan
@@ -236,8 +370,10 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json(res)
             except Exception as e:
                 return self.send_json({"error": str(e)}, 400)
+        if p.startswith("/api/admin/"):
+            return self.admin_get(p[len("/api/admin/"):], parse_qs(u.query))
         name = os.path.basename(p)
-        if name in HIDDEN or name.endswith(".py") or p.startswith("/backups") or p.startswith("/.git"):
+        if name in HIDDEN or name.endswith(".py") or p.startswith("/backups") or p.startswith("/.git") or name.endswith((".jsonl", ".tmp")):
             return self.send_error(404)
         return super().do_GET()
 
@@ -249,10 +385,13 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json({"error": "too large"}, 413)
             try:
                 op = json.loads(self.rfile.read(length).decode("utf-8"))
+                rec = []
                 with LOCK:
                     d = load()
-                    apply_op(d, op)
+                    apply_op(d, op, rec)
                     save(d)
+                if rec:
+                    log_change({"kind": "change", "changes": rec}, client_ip(self))
                 d["server"] = True
                 return self.send_json(d)
             except Exception as e:
@@ -275,8 +414,131 @@ class Handler(SimpleHTTPRequestHandler):
                     if not chunk:
                         break
                     f.write(chunk); remaining -= len(chunk)
+            log_change({"kind": "upload", "file": "uploads/" + fname, "name": base + ext, "size": length}, client_ip(self))
             return self.send_json({"path": "uploads/" + fname, "name": base + ext, "size": length})
+        if u.path.startswith("/api/admin/"):
+            if length > 1024 * 1024:
+                return self.send_json({"error": "too large"}, 413)
+            try:
+                body = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            except ValueError:
+                return self.send_json({"error": "bad request"}, 400)
+            return self.admin_post(u.path[len("/api/admin/"):], body)
         self.send_error(404)
+
+    # ------------------------------------------------------------ admin
+    def admin_get(self, what, q):
+        if not is_admin(self):
+            return self.send_json({"error": "Enter the admin PIN."}, 401)
+        if what == "log":
+            entries = read_log()
+            undone = {e.get("of") for e in entries if e.get("kind") == "undo"}
+            for e in entries:
+                e["undone"] = e["id"] in undone
+                if not e.get("pc") and e.get("ip"):
+                    e["pc"] = computer_name(e["ip"])
+            limit = min(int(q.get("limit", ["400"])[0] or 400), 5000)
+            return self.send_json({"entries": entries[-limit:][::-1], "total": len(entries)})
+        if what == "files":
+            with LOCK:
+                d = load()
+            files = []
+            if os.path.isdir(UPLOADS):
+                for n in sorted(os.listdir(UPLOADS)):
+                    fp = os.path.join(UPLOADS, n)
+                    if n.startswith(".") or not os.path.isfile(fp):
+                        continue
+                    st = os.stat(fp)
+                    files.append({"name": n, "path": "uploads/" + n, "size": st.st_size, "t": int(st.st_mtime * 1000), "usedBy": where_used(d, "uploads/" + n)})
+            du = shutil.disk_usage(ROOT)
+            return self.send_json({"files": files, "folder": UPLOADS, "disk": {"total": du.total, "free": du.free}})
+        if what == "backups":
+            out = []
+            if os.path.isdir(BACKUPS):
+                for n in sorted(os.listdir(BACKUPS), reverse=True):
+                    if n.endswith(".json"):
+                        st = os.stat(os.path.join(BACKUPS, n))
+                        out.append({"name": n, "size": st.st_size, "t": int(st.st_mtime * 1000)})
+            return self.send_json({"backups": out})
+        return self.send_json({"error": "unknown"}, 404)
+
+    def admin_post(self, what, body):
+        ip = client_ip(self)
+        cfg = admin_cfg()
+        if what == "status":
+            return self.send_json({"hasPin": bool(cfg.get("pin")), "ok": is_admin(self)})
+        if what in ("setup", "login"):
+            pin = str(body.get("pin") or "")
+            days = 30 if body.get("remember") else 0.5
+            if what == "setup":
+                if cfg.get("pin"):
+                    return self.send_json({"error": "A PIN is already set."}, 400)
+                if not re.fullmatch(r"\d{4,12}", pin):
+                    return self.send_json({"error": "Use 4 to 12 numbers."}, 400)
+                salt = secrets.token_hex(16)
+                cfg = {"salt": salt, "pin": pin_hash(pin, salt), "tokens": {}}
+                return self.send_json({"token": new_token(cfg, days)})
+            n, first = FAILS.get(ip, [0, 0])
+            if n >= 8 and time.time() - first < 300:
+                return self.send_json({"error": "Too many wrong tries. Wait 5 minutes."}, 429)
+            if not cfg.get("pin") or not hmac.compare_digest(pin_hash(pin, cfg["salt"]), cfg["pin"]):
+                FAILS[ip] = [n + 1, first if n and time.time() - first < 300 else time.time()]
+                time.sleep(0.8)
+                return self.send_json({"error": "That PIN isn't right."}, 403)
+            FAILS.pop(ip, None)
+            return self.send_json({"token": new_token(cfg, days)})
+        if not is_admin(self):
+            return self.send_json({"error": "Enter the admin PIN."}, 401)
+        if what == "logout":
+            tok = self.headers.get("X-Admin-Token") or ""
+            cfg.get("tokens", {}).pop(token_hash(tok), None)
+            admin_save(cfg)
+            return self.send_json({"ok": True})
+        if what == "pin":
+            pin = str(body.get("pin") or "")
+            if not re.fullmatch(r"\d{4,12}", pin):
+                return self.send_json({"error": "Use 4 to 12 numbers."}, 400)
+            cfg["salt"] = secrets.token_hex(16)
+            cfg["pin"] = pin_hash(pin, cfg["salt"])
+            cfg["tokens"] = {}
+            return self.send_json({"token": new_token(cfg, 30 if body.get("remember") else 0.5)})
+        if what == "undo":
+            entry = next((e for e in read_log() if e.get("id") == body.get("id")), None)
+            if not entry or entry.get("kind") != "change":
+                return self.send_json({"error": "That change wasn't found."}, 404)
+            with LOCK:
+                d = load()
+                for c in reversed(entry["changes"]):
+                    if c["coll"] in COLLS:
+                        put_row(d, c["coll"], c["id"], c["before"])
+                save(d)
+            log_change({"kind": "undo", "of": entry["id"], "changes": [{"coll": c["coll"], "id": c["id"], "before": c["after"], "after": c["before"]} for c in entry["changes"]]}, ip)
+            d["server"] = True
+            return self.send_json(d)
+        if what == "delete-file":
+            name = os.path.basename(str(body.get("name") or ""))
+            fp = os.path.join(UPLOADS, name)
+            if not name or name.startswith(".") or not os.path.isfile(fp):
+                return self.send_json({"error": "File not found."}, 404)
+            size = os.path.getsize(fp)
+            os.remove(fp)
+            log_change({"kind": "delete-file", "file": "uploads/" + name, "name": name, "size": size}, ip)
+            return self.send_json({"ok": True})
+        if what == "restore":
+            name = os.path.basename(str(body.get("name") or ""))
+            fp = os.path.join(BACKUPS, name)
+            if not name.endswith(".json") or not os.path.isfile(fp):
+                return self.send_json({"error": "Backup not found."}, 404)
+            with LOCK:
+                with open(fp, encoding="utf-8") as f:
+                    restored = json.load(f)
+                keep = os.path.join(BACKUPS, "before-restore-" + datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S") + ".json")
+                shutil.copy2(DATA, keep)
+                restored["rev"] = load().get("rev", 0)
+                save(restored)
+            log_change({"kind": "restore", "name": name, "saved": os.path.basename(keep)}, ip)
+            return self.send_json({"ok": True})
+        return self.send_json({"error": "unknown"}, 404)
 
 
 class Server(ThreadingHTTPServer):

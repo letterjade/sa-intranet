@@ -87,6 +87,23 @@ Click **Office Plugins › + Add your plugin**.
 
 No code changes are needed for either.
 
+## 6. Admin page (only you)
+
+Open **Admin** at the very bottom of any page (or go to `…:8080/#/admin`). The first time, it asks you to choose a PIN. After that, only someone with the PIN can open it. On your computer an **Admin** tab appears in the top bar, with a red number when someone is waiting for help or has posted a new request.
+
+* **Help requests:** everyone who clicked "Ask for help", where they sit, and a **Done** button.
+* **Wishlist:** every request, its status, votes and files. Remove the ones you don't need.
+* **Everything that changed:** every add, edit, delete and upload, with the time, the name they typed and which computer it came from. **Details** shows exactly what changed. **Undo** puts it back.
+* **Uploaded files:** what's in `uploads\`, how big it is, what it's attached to, and free space on the drive. Delete files here.
+* **Backups:** restore a day's copy of everything. Today's version is saved first.
+
+Where it's kept, next to the site (none of it goes to GitHub):
+
+* `changes.jsonl`: the list of changes, one per line. It grows slowly; delete it to start fresh.
+* `admin.json`: your PIN (scrambled, never stored as-is). **Forgot the PIN?** Delete `admin.json` and choose a new one.
+
+The PIN keeps the Admin page private, but anyone on the network can still add and edit things on the normal pages. That's on purpose, and the change list means nothing is lost without a trace.
+
 ## Files
 
 ```
@@ -96,6 +113,7 @@ assets/js/               the app (one file per page in pages/)
 assets/fonts/            Jost (open font licence)
 icons/                   tool icons read from pyRevit folders
 server.py                the web server (Python standard library only)
+assets/js/pages/admin.js the Admin page
 data.seed.json           starting data
 Start-SA-Intranet.bat    start the server on Windows
 Update-from-GitHub.bat   get the latest code on the server
