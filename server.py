@@ -119,6 +119,15 @@ def _concise_plugin_cards(d):
 FIXES.append(("2026-10-27-concise-plugin-cards", _concise_plugin_cards))
 
 
+def _snydex_public_url(d):
+    for link in d.get("links", []):
+        if link.get("id") == "l-snydex":
+            link["url"] = "https://snydex.ca/"
+
+
+FIXES.append(("2026-10-27-snydex-public-url", _snydex_public_url))
+
+
 def migrate(d):
     done = set(d.get("fixes", []))
     changed = False
