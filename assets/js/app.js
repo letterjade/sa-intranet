@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// SA Intranet — starts everything and picks the page from the address.
+// Snyder Hub — starts everything and picks the page from the address.
 //   #/                     Home
 //   #/plugins[/revit]      Office Plugins (optionally one software)
 //   #/plugin/<id>          One plugin
@@ -45,8 +45,8 @@ function draw({ keepScroll = false, animate = false } = {}) {
   const y = window.scrollY;
   const focusId = document.activeElement && document.activeElement.id;
   route();
-  if (state.mode === "offline") document.getElementById("page").prepend(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Couldn't load SA Intranet's data. Open it through the server address (http://…), not by double-clicking the file." })));
-  else if (state.mode === "readonly") document.getElementById("page").prepend(h("div", { class: "wrap", style: "padding-top:1rem" }, h("p", { class: "note", text: "Read-only: the SA Intranet server isn't running, so changes can't be saved." })));
+  if (state.mode === "offline") document.getElementById("page").prepend(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Couldn't load Snyder Hub's data. Open it through the server address (http://…), not by double-clicking the file." })));
+  else if (state.mode === "readonly") document.getElementById("page").prepend(h("div", { class: "wrap", style: "padding-top:1rem" }, h("p", { class: "note", text: "Read-only: the Snyder Hub server isn't running, so changes can't be saved." })));
   if (animate) playEnter();
   if (keepScroll) window.scrollTo(0, y);
   if (focusId) document.getElementById(focusId)?.focus();

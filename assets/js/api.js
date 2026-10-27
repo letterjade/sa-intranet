@@ -39,7 +39,7 @@ async function post(url, body, headers) {
 
 /** Save one change: {op:"upsert"|"delete"|"vote"|"batch", ...} */
 export async function send(op) {
-  if (!canEdit()) throw new Error("Saving needs the SA Intranet server (server.py) to be running.");
+  if (!canEdit()) throw new Error("Saving needs the Snyder Hub server (server.py) to be running.");
   const d = await post("api/op", JSON.stringify(op), { "Content-Type": "application/json" });
   setData(d);
   listeners.forEach(fn => fn());
@@ -49,7 +49,7 @@ export const remove = (coll, id) => send({ op: "delete", coll, id });
 export const batch = ops => send({ op: "batch", ops });
 
 export async function upload(file) {
-  if (!canEdit()) throw new Error("Uploading needs the SA Intranet server.");
+  if (!canEdit()) throw new Error("Uploading needs the Snyder Hub server.");
   return post("api/upload?name=" + encodeURIComponent(file.name), file);
 }
 

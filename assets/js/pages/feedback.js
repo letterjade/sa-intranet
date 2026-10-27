@@ -98,7 +98,7 @@ export function discussionPanel(plugin, tools) {
     field("Show discussions for", filterInput));
   if (!ready()) box.append(h("p", { class: "bad-box", role: "status", text: canEdit()
     ? "The website has updated, but its Python server is still running an older version. On the server computer, run Update-from-GitHub.bat, close the server window, reopen Start-SA-Intranet.bat, then refresh this page. Posting is disabled until the server is ready."
-    : "Open this page through the running SA Intranet server to post comments." }));
+    : "Open this page through the running Snyder Hub server to post comments." }));
   const threads = rows.filter(r => !r.parent && (filter === "all" || (filter === "general" ? !r.tool : r.tool === filter))).sort((a,b) => b.createdAt - a.createdAt);
   const list = h("div", { class: "stack discussion-threads" });
   for (const row of threads) {

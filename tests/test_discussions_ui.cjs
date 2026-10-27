@@ -36,7 +36,7 @@ const plugin={id:'p',name:'Drafting Tools'}, tools=context.state.data.tools;
  // A different browser does not get author actions.
  storage.clear();root=context.board(plugin,tools);assert(!find(root,n=>n.tag==='button'&&n.kids.includes('Edit')));
  context.state.data.capabilities=[];root=context.board(plugin,tools);assert(find(root,n=>n.attrs.class==='bad-box').attrs.text.includes('reopen Start-SA-Intranet.bat'));assert(find(forms(root).find(f=>f.attrs.class.includes('discussion-new-form')),n=>n.attrs.type==='submit').disabled);
- editable=false;root=context.board(plugin,tools);assert(find(root,n=>n.attrs.class==='bad-box').attrs.text.includes('running SA Intranet server'));
+ editable=false;root=context.board(plugin,tools);assert(find(root,n=>n.attrs.class==='bad-box').attrs.text.includes('running Snyder Hub server'));
  // Check the plugin navigation is wired to a single discussion board.
  const pluginSource=fs.readFileSync(path.join(__dirname,'../assets/js/pages/plugin.js'),'utf8');
  assert(pluginSource.includes('["discussion", "Discussion  " + discussionCount(p.id)]'));

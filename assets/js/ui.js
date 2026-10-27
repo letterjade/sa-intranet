@@ -112,7 +112,7 @@ export function fileRef(f, extra) {
   const [lab, col] = EXT[ext] || [(ext || "FILE").slice(0, 4).toUpperCase(), "#5b6672"];
   return h("div", { class: "file" },
     h("span", { class: "ftype", style: "--fc:" + col, text: lab }),
-    h("div", { class: "fm" }, h("b", { text: name }), h("code", { text: isUp ? "Uploaded to SA Intranet" : p })),
+    h("div", { class: "fm" }, h("b", { text: name }), h("code", { text: isUp ? "Uploaded to Snyder Hub" : p })),
     isUp || isUrl ? h("a", { class: "btn small", href: p, target: "_blank", rel: "noopener" }, "Open")
                   : h("button", { class: "btn small", type: "button", onclick: () => copyText(p, "Path copied. Paste it into File Explorer.") }, "Copy path"),
     extra || null);
@@ -123,7 +123,7 @@ const TABS = [["Home", "#/"], ["Office Plugins", "#/plugins"], ["Office Systems"
 export function renderTopbar(active) {
   const bar = document.getElementById("topbar");
   bar.replaceChildren(h("div", { class: "wrap" },
-    h("a", { class: "brand", href: "#/" }, h("span", { class: "s", text: "S" }), h("b", { text: "SA INTRANET" })),
+    h("a", { class: "brand", href: "#/" }, h("span", { class: "s", text: "S" }), h("b", { text: "SNYDER HUB" })),
     h("nav", { class: "tabs", "aria-label": "Main" }, TABS.map(([n, href]) =>
       h("a", { class: "tab", href, "aria-current": n === active ? "page" : null, text: n })),
       isAdminHere() ? adminTab(active === "Admin") : null)));

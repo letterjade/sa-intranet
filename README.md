@@ -1,4 +1,4 @@
-# SA Intranet
+# Snyder Hub
 
 The Snyder Architects office start page: **Office Plugins** (Revit, Rhino / Grasshopper, AutoCAD tools made in the office), **Office Systems** (links to the apps on our server), a **Wishlist** for tool requests, and **What's New**.
 
@@ -78,9 +78,9 @@ Click **Office Plugins › + Add your plugin**.
 
 **Where a request goes.** When someone posts on the Wishlist it is saved in `data.json` on the server. It shows on the Wishlist page, in the Home page's "What's new › Requests", and as a "New request" post in What's New. Anyone can vote, attach files and change its status. When the status moves to Planned, In progress or Done, that is posted to What's New too. Nobody is emailed.
 
-**Alerts.** Each person turns alerts on in **What's New › Alerts** and picks what they want (new tools, updates, wishlist, help requests, office news). Settings are saved in that person's browser. SA Intranet checks for new posts every 20 seconds.
+**Alerts.** Each person turns alerts on in **What's New › Alerts** and picks what they want (new tools, updates, wishlist, help requests, office news). Settings are saved in that person's browser. Snyder Hub checks for new posts every 20 seconds.
 
-* Out of the box (plain `http://` address) alerts appear in the corner of SA Intranet while it is open in a browser tab.
+* Out of the box (plain `http://` address) alerts appear in the corner of Snyder Hub while it is open in a browser tab.
 * To get real **Windows pop-ups**, even when the tab is in the background, the browser has to treat the address as secure. Either:
   * **Per PC (quick test):** in Edge go to `edge://flags/#unsafely-treat-insecure-origin-as-secure` (Chrome: `chrome://flags/...`), add `http://<site address>:8080`, Enable, restart the browser. Then turn alerts on again.
   * **Every PC (proper):** the Edge/Chrome group policy *OverrideSecurityRestrictionsOnInsecureOrigin* with the site address, or put the site on an internal `https://` address.

@@ -1,7 +1,7 @@
 // Alerts for new tools, updates, wishlist changes and office news.
 // Settings are kept on each computer (no accounts).
 // Real Windows pop-ups need the site on https:// (browser rule); on plain
-// http:// we show the alert inside SA Intranet instead.
+// http:// we show the alert inside Snyder Hub instead.
 import { h, icon } from "./ui.js";
 import { state, local } from "./api.js";
 
@@ -37,7 +37,7 @@ export function checkForNew() {
   }
 }
 function show(n) {
-  const title = { "NEW TOOL": "New in Office Plugins", "NEW PLUGIN": "New plugin", "UPDATE": "Tool update", "WISHLIST": "Wishlist", "HELP": "Install help request", "OFFICE NEWS": "Office news" }[n.kind] || "SA Intranet";
+  const title = { "NEW TOOL": "New in Office Plugins", "NEW PLUGIN": "New plugin", "UPDATE": "Tool update", "WISHLIST": "Wishlist", "HELP": "Install help request", "OFFICE NEWS": "Office news" }[n.kind] || "Snyder Hub";
   if (canPopUp() && Notification.permission === "granted") {
     const note = new Notification(title, { body: n.title, icon: "favicon.svg", tag: n.id });
     note.onclick = () => { window.focus(); location.hash = n.plugin ? "#/plugin/" + n.plugin : "#/news"; };
@@ -67,8 +67,8 @@ export function settingsPanel(onChange) {
     h("input", { type: "checkbox", checked: s.kinds[key], onchange: e => { const x = settings(); x.kinds[key] = e.target.checked; save(x); } }),
     h("span", null, h("b", { style: "display:block;font-weight:500", text: name }), h("small", { class: "muted", style: "font-size:.82rem", text: desc }))));
   const popupNote = canPopUp()
-    ? (("Notification" in window && Notification.permission === "denied") ? "Your browser is blocking pop-ups for this site. Allow notifications in the browser's site settings." : "Pop-ups appear in the corner of your screen, even when SA Intranet is in a background tab.")
-    : "Alerts appear in the corner of SA Intranet while it's open in a browser tab.";
+    ? (("Notification" in window && Notification.permission === "denied") ? "Your browser is blocking pop-ups for this site. Allow notifications in the browser's site settings." : "Pop-ups appear in the corner of your screen, even when Snyder Hub is in a background tab.")
+    : "Alerts appear in the corner of Snyder Hub while it's open in a browser tab.";
   return h("div", { class: "panel", style: "gap:.6rem" },
     h("div", { style: "display:flex;align-items:center;gap:.8rem" }, icon("bell"), h("h3", { style: "flex:1;margin:0", text: "Alerts" }), tg),
     h("p", { style: "color:var(--body);font-size:.95rem", text: "Choose what you'd like to hear about. This is saved on this computer only." }),

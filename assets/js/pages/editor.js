@@ -21,7 +21,7 @@ export function render(root, id, software) {
     h("div", { class: "crumbs" }, h("a", { href: "#/plugins", text: "Office Plugins" }), "/", h("span", { text: editing ? "Edit " + draft.name : "Add your plugin" })),
     h("h1", { text: editing ? "Edit " + draft.name : "Add your plugin" }),
     h("p", { class: "sub", text: "Four short steps. About 10 minutes." })));
-  if (!canEdit()) { root.replaceChildren(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Adding plugins needs the SA Intranet server (server.py) to be running." }))); return; }
+  if (!canEdit()) { root.replaceChildren(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Adding plugins needs the Snyder Hub server (server.py) to be running." }))); return; }
 
   const rerender = () => render(root, id, software);
   const s = sw(draft.software);

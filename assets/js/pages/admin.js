@@ -13,7 +13,7 @@ let actFilter = "all", showVotes = false, openDetail = null, showDoneHelp = fals
 export function render(root, tab = "help") {
   if (!TABS.some(([k]) => k === tab)) tab = "help";
   renderTopbar("Admin");
-  if (!canEdit()) { renderBanner(h("div", { class: "grow" }, h("h1", { text: "Admin" }))); root.replaceChildren(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Admin needs the SA Intranet server to be running." }))); return; }
+  if (!canEdit()) { renderBanner(h("div", { class: "grow" }, h("h1", { text: "Admin" }))); root.replaceChildren(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Admin needs the Snyder Hub server to be running." }))); return; }
   if (!adminToken()) return lockScreen(root);
   if (seenBefore === null) { seenBefore = local.get("sa.adminSeen", 0); local.set("sa.adminSeen", Date.now()); }
 
@@ -40,7 +40,7 @@ const go = t => (location.hash = "#/admin" + (t === "help" ? "" : "/" + t));
 
 // ---------------------------------------------------------------- lock
 function lockScreen(root) {
-  renderBanner(h("div", { class: "grow" }, h("h1", { text: "Admin" }), h("p", { class: "sub", text: "For the person who looks after SA Intranet." })));
+  renderBanner(h("div", { class: "grow" }, h("h1", { text: "Admin" }), h("p", { class: "sub", text: "For the person who looks after Snyder Hub." })));
   const box = h("div", { class: "panel lock" }, h("p", { class: "empty", text: "Checking…" }));
   root.replaceChildren(h("div", { class: "wrap page" }, box));
   admin("status", {}).then(st => {
@@ -207,7 +207,7 @@ function filesTab() {
   return [
     h("div", { class: "panel soft", style: "gap:.4rem" },
       h("b", { text: "Where are these stored?" }),
-      h("p", { text: "On the office server, in the uploads folder next to SA Intranet — not on the internet, and not in GitHub. Nothing is sent anywhere else, so there's no cloud storage or monthly cost. The only limit is the free space on that drive." }),
+      h("p", { text: "On the office server, in the uploads folder next to Snyder Hub — not on the internet, and not in GitHub. Nothing is sent anywhere else, so there's no cloud storage or monthly cost. The only limit is the free space on that drive." }),
       h("p", { class: "mono", style: "font-size:.85rem", text: folder }),
       h("p", { class: "muted", text: files.length + " files · " + mb(total) + " used · " + gb(disk.free) + " free on that drive" })),
     files.length ? h("table", { class: "atable" },
@@ -225,10 +225,10 @@ function filesTab() {
 // ---------------------------------------------------------------- backups
 function backupsTab() {
   const list = cache.backups;
-  return [h("p", { class: "lead", text: "The server saves a copy of everything once a day, the first time something changes that day. Restoring replaces everything on SA Intranet with that day's copy. Today's version is saved first, so you can come back." }),
+  return [h("p", { class: "lead", text: "The server saves a copy of everything once a day, the first time something changes that day. Restoring replaces everything on Snyder Hub with that day's copy. Today's version is saved first, so you can come back." }),
     list.length ? h("table", { class: "atable" }, h("thead", null, h("tr", null, ["Copy", "Size", "", ""].map(t => h("th", { text: t })))),
       h("tbody", null, list.map(b => h("tr", null, h("td", { text: backupLabel(b.name) }), h("td", { class: "num", text: mb(b.size) }), h("td", { text: when(b.t) }),
-        h("td", { class: "acts" }, h("button", { class: "btn small", type: "button", onclick: () => confirmThen("Replace everything on SA Intranet with the copy from " + backupLabel(b.name) + "? Today's version is saved first.", async () => { await admin("restore", { name: b.name }); cache.rev = null; toast("Restored"); window.dispatchEvent(new Event("sa:refresh")); }) }, "Restore"))))))
+        h("td", { class: "acts" }, h("button", { class: "btn small", type: "button", onclick: () => confirmThen("Replace everything on Snyder Hub with the copy from " + backupLabel(b.name) + "? Today's version is saved first.", async () => { await admin("restore", { name: b.name }); cache.rev = null; toast("Restored"); window.dispatchEvent(new Event("sa:refresh")); }) }, "Restore"))))))
       : h("p", { class: "empty", text: "No backups yet. The first one is made the next time something changes." })];
 }
 

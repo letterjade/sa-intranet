@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SA Intranet - small office web server.
+Snyder Hub - small office web server.
 
 Serves this folder as a website and saves everyone's changes to data.json.
 Standard library only (Python 3.8+), nothing to install.
@@ -674,7 +674,7 @@ def this_computers_ip():
 
 
 def main():
-    ap = argparse.ArgumentParser(description="SA Intranet server")
+    ap = argparse.ArgumentParser(description="Snyder Hub server")
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--host", default="")
     a = ap.parse_args()
@@ -697,7 +697,7 @@ def main():
         input("Press Enter to close.")
         return
     ip = this_computers_ip()
-    print("SA Intranet is running on THIS computer (%s), from folder:" % socket.gethostname())
+    print("Snyder Hub is running on THIS computer (%s), from folder:" % socket.gethostname())
     print("   " + ROOT)
     print("")
     print("   On this computer:     http://localhost:%d/" % a.port)

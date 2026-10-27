@@ -89,7 +89,7 @@ function installSteps(p) {
   const copyBox = text => h("div", { class: "copybox" }, h("code", { text }), h("button", { class: "btn primary", type: "button", onclick: () => copyText(text, "Path copied") }, "Copy path"));
   const download = () => p.package?.path
     ? h("div", { class: "file", style: "max-width:none;background:#fff" }, h("span", { class: "ftype", style: "--fc:#3c3d40", text: "ZIP" }),
-        h("div", { class: "fm" }, h("b", { text: p.package.name || "Package" }), h("code", { text: p.package.size ? Math.max(1, Math.round(p.package.size / 1024)) + " KB · on the SA Intranet server" : "on the SA Intranet server" })),
+        h("div", { class: "fm" }, h("b", { text: p.package.name || "Package" }), h("code", { text: p.package.size ? Math.max(1, Math.round(p.package.size / 1024)) + " KB · on the Snyder Hub server" : "on the Snyder Hub server" })),
         h("a", { class: "btn primary", href: p.package.path, download: p.package.name || true }, "Download"))
     : h("p", { class: "note", text: "The package hasn't been uploaded yet. Use “Ask for help”." });
   const li = (...kids) => h("li", null, h("div", { class: "tx" }, ...kids));
