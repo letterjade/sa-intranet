@@ -1,0 +1,11 @@
+# Live office data stays on the server, not in GitHub
+data.json
+data.json.tmp
+backups/*
+!backups/.keep
+uploads/*
+!uploads/.keep
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
