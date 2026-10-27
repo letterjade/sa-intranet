@@ -38,17 +38,28 @@ function route() {
   return home.render(root);
 }
 
-function draw({ keepScroll = false } = {}) {
+function draw({ keepScroll = false, animate = false } = {}) {
   const y = window.scrollY;
   const focusId = document.activeElement && document.activeElement.id;
   route();
   if (state.mode === "offline") document.getElementById("page").prepend(h("div", { class: "wrap page" }, h("p", { class: "bad-box", text: "Couldn't load SA Intranet's data. Open it through the server address (http://…), not by double-clicking the file." })));
   else if (state.mode === "readonly") document.getElementById("page").prepend(h("div", { class: "wrap", style: "padding-top:1rem" }, h("p", { class: "note", text: "Read-only: the SA Intranet server isn't running, so changes can't be saved." })));
+  if (animate) playEnter();
   if (keepScroll) window.scrollTo(0, y);
   if (focusId) document.getElementById(focusId)?.focus();
 }
 
-window.addEventListener("hashchange", () => { draw(); window.scrollTo(0, 0); });
+// Gentle arrival animation when you open a page (not when data refreshes).
+let enterTimer;
+function playEnter() {
+  const items = document.querySelectorAll("#page .section-head, #page .subtabs, #page .cards > *, #page .tiles > *, #page .tools > *, #page .stack > .req, #page .stack > .post, #page .cols > aside > *, #page .card-section, #page .rule-head");
+  items.forEach((el, i) => { el.dataset.stagger = ""; el.style.setProperty("--i", Math.min(i, 14)); });
+  document.body.classList.remove("enter"); void document.body.offsetWidth; document.body.classList.add("enter");
+  clearTimeout(enterTimer);
+  enterTimer = setTimeout(() => { document.body.classList.remove("enter"); items.forEach(el => delete el.dataset.stagger); }, 1600);
+}
+
+window.addEventListener("hashchange", () => { draw({ animate: true }); window.scrollTo(0, 0); });
 window.addEventListener("sa:refresh", () => draw({ keepScroll: true }));
 document.addEventListener("keydown", e => {
   if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !document.getElementById("modal").open) { const q = document.getElementById("q"); if (q) { e.preventDefault(); q.focus(); } }
@@ -61,4 +72,4 @@ onChange(({ fromPoll } = {}) => {
 });
 
 renderBanner();
-load().then(() => { draw(); checkForNew(); });
+load().then(() => { draw({ animate: true }); checkForNew(); });

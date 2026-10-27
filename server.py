@@ -56,6 +56,27 @@ def load():
     return d
 
 
+# One-time fixes for the live data.json. Each runs once, the first time the
+# server starts after an update, and is then remembered in data.json "fixes".
+def _fix_snydex(d):
+    for l in d.get("links", []):
+        if l.get("id") == "l-snydex" and l.get("description") in ("Office web app", "", None):
+            l["description"] = "Snyder AI web"
+
+FIXES = [("2026-10-28-snydex-description", _fix_snydex)]
+
+
+def migrate(d):
+    done = set(d.get("fixes", []))
+    changed = False
+    for key, fn in FIXES:
+        if key not in done:
+            fn(d)
+            d.setdefault("fixes", []).append(key)
+            changed = True
+    return changed
+
+
 def save(d):
     os.makedirs(BACKUPS, exist_ok=True)
     day = os.path.join(BACKUPS, "data-" + datetime.date.today().isoformat() + ".json")
@@ -286,7 +307,9 @@ def main():
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--host", default="")
     a = ap.parse_args()
-    load()  # create data.json from the seed on first run
+    d = load()  # creates data.json from the seed on first run
+    if migrate(d):
+        save(d)
     try:
         if a.host:
             srv = Server((a.host, a.port), Handler)

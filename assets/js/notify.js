@@ -8,9 +8,9 @@ import { state, local } from "./api.js";
 const KINDS = [
   ["tools", "New tools and plugins", "Anything added to Office Plugins", ["NEW TOOL", "NEW PLUGIN"]],
   ["updates", "Updates to tools", "Fixes and new features", ["UPDATE"]],
-  ["wishlist", "Wishlist changes", "When a request moves to Planned or Done", ["WISHLIST"]],
+  ["wishlist", "Wishlist", "New tool requests, and when one moves to Planned or Done", ["WISHLIST"]],
   ["help", "Install help requests", "When someone asks for help installing a plugin", ["HELP"]],
-  ["news", "Office news", "Announcements from IT and the studio", ["OFFICE NEWS"]],
+  ["news", "Office news", "Announcements for the office", ["OFFICE NEWS"]],
 ];
 const DEFAULTS = { on: false, kinds: { tools: true, updates: true, wishlist: true, help: false, news: true } };
 export const settings = () => ({ ...DEFAULTS, ...local.get("sa.alerts", {}), kinds: { ...DEFAULTS.kinds, ...(local.get("sa.alerts", {}).kinds || {}) } });
@@ -68,7 +68,7 @@ export function settingsPanel(onChange) {
     h("span", null, h("b", { style: "display:block;font-weight:500", text: name }), h("small", { class: "muted", style: "font-size:.82rem", text: desc }))));
   const popupNote = canPopUp()
     ? (("Notification" in window && Notification.permission === "denied") ? "Your browser is blocking pop-ups for this site. Allow notifications in the browser's site settings." : "Pop-ups appear in the corner of your screen, even when SA Intranet is in a background tab.")
-    : "This computer will show alerts inside SA Intranet while it's open. Windows pop-ups need the site on an https:// address (ask IT, see README).";
+    : "Alerts appear in the corner of SA Intranet while it's open in a browser tab.";
   return h("div", { class: "panel", style: "gap:.6rem" },
     h("div", { style: "display:flex;align-items:center;gap:.8rem" }, icon("bell"), h("h3", { style: "flex:1;margin:0", text: "Alerts" }), tg),
     h("p", { style: "color:var(--body);font-size:.95rem", text: "Choose what you'd like to hear about. This is saved on this computer only." }),

@@ -60,7 +60,12 @@ function requestForm(root) {
     try { localStorage.setItem("sa.name", draft.requester.trim()); } catch (e) { /* ignore */ }
     const item = { id: editing ? editing.id : newId("w"), title: draft.title.trim(), software: draft.software, details: draft.details.trim(), requester: draft.requester.trim(), files: draft.files };
     if (!editing) { item.status = "Open"; item.voters = [voterId]; }
-    try { await upsert("wishes", item); toast(editing ? "Request updated" : "Request posted"); draft = null; editing = null; render(root); } catch (e) { err.textContent = e.message; }
+    try {
+      await upsert("wishes", item);
+      if (!editing) await postNews({ kind: "WISHLIST", wish: item.id, title: "New request: " + item.title, body: item.details, by: item.requester });
+      toast(editing ? "Request updated" : "Request posted. It's on the Wishlist and in What's New.");
+      draft = null; editing = null; render(root);
+    } catch (e) { err.textContent = e.message; }
   };
   return h("aside", { class: "panel", style: "gap:1.1rem;padding:1.6rem;position:sticky;top:5.5rem" },
     h("h3", { text: editing ? "Edit request" : "Request a tool" }),

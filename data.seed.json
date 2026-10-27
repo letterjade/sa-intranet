@@ -89,7 +89,7 @@
    "id": "l-snydex",
    "name": "Snydex",
    "group": "Staff",
-   "description": "Office web app",
+   "description": "Snyder AI web",
    "glyph": "grid",
    "color": "gray",
    "url": "http://192.168.100.162:5173/",

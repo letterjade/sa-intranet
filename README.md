@@ -74,9 +74,18 @@ Click **Office Plugins › + Add your plugin**.
 
 **Jade Cleaner:** set its real server folder: open the plugin › **Edit** › step 2. Until then its Install window tells people to ask for help.
 
-## 5. Desktop pop-up alerts
+## 5. Wishlist and alerts
 
-Alerts work straight away *inside* SA Intranet while it's open in a tab. Real Windows pop-ups need the site on an **https://** address: browsers don't allow website notifications on plain `http://192.168.x.x`. To turn them on, IT can put SA Intranet behind an internal HTTPS certificate (for example IIS or Caddy as a reverse proxy to port 8080, with the office's internal certificate trusted on every PC). Nothing in the code needs to change.
+**Where a request goes.** When someone posts on the Wishlist it is saved in `data.json` on the server. It shows on the Wishlist page, in the Home page's "What's new › Requests", and as a "New request" post in What's New. Anyone can vote, attach files and change its status. When the status moves to Planned, In progress or Done, that is posted to What's New too. Nobody is emailed.
+
+**Alerts.** Each person turns alerts on in **What's New › Alerts** and picks what they want (new tools, updates, wishlist, help requests, office news). Settings are saved in that person's browser. SA Intranet checks for new posts every 20 seconds.
+
+* Out of the box (plain `http://` address) alerts appear in the corner of SA Intranet while it is open in a browser tab.
+* To get real **Windows pop-ups**, even when the tab is in the background, the browser has to treat the address as secure. Either:
+  * **Per PC (quick test):** in Edge go to `edge://flags/#unsafely-treat-insecure-origin-as-secure` (Chrome: `chrome://flags/...`), add `http://<site address>:8080`, Enable, restart the browser. Then turn alerts on again.
+  * **Every PC (proper):** the Edge/Chrome group policy *OverrideSecurityRestrictionsOnInsecureOrigin* with the site address, or put the site on an internal `https://` address.
+
+No code changes are needed for either.
 
 ## Files
 

@@ -142,7 +142,7 @@ function helpBox(p) {
       closeModal(); toast("Sent. " + (p.madeBy || "They") + " will see your request.");
     } catch (e) { err.textContent = e.message; }
   };
-  if (!p.helpOn && p.helpOn !== undefined) return h("div", { class: "panel tint" }, h("h3", { text: "Need help?" }), h("p", { text: "Ask " + who + " or IT in person." }));
+  if (!p.helpOn && p.helpOn !== undefined) return h("div", { class: "panel tint" }, h("h3", { text: "Need help?" }), h("p", { text: "Ask " + who + " in person." }));
   return h("div", { class: "panel tint", style: "gap:.9rem;padding:1.6rem" },
     h("h3", { style: "font-size:1.45rem", text: "Prefer some help?" }),
     h("p", { style: "color:var(--body)", text: who + " can set it up at your desk. It takes a few minutes." }),
