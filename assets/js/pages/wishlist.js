@@ -41,7 +41,7 @@ function requestCard(w, root) {
 }
 
 function requestForm(root) {
-  if (!draft) draft = { title: "", software: "Revit", details: "", requester: localStorage.getItem("sa.name") || "", files: [] };
+  if (!draft) draft = { title: "", software: "Revit", details: "", requester: "", files: [] };
   const title = h("input", { id: "wTitle", maxlength: "120", placeholder: "e.g. Batch renumber sheets by discipline", oninput: e => (draft.title = e.target.value) }); title.value = draft.title;
   const details = h("textarea", { id: "wDetails", maxlength: "2000", placeholder: "What are you doing by hand today? How often?", oninput: e => (draft.details = e.target.value) }); details.value = draft.details;
   const name = h("input", { id: "wName", maxlength: "60", placeholder: "So the builder can follow up", oninput: e => (draft.requester = e.target.value) }); name.value = draft.requester;
@@ -57,7 +57,6 @@ function requestForm(root) {
   const err = h("p", { class: "err" });
   const submit = async () => {
     if (!draft.title.trim()) { err.textContent = "Say what you need the tool to do."; return; }
-    try { localStorage.setItem("sa.name", draft.requester.trim()); } catch (e) { /* ignore */ }
     const item = { id: editing ? editing.id : newId("w"), title: draft.title.trim(), software: draft.software, details: draft.details.trim(), requester: draft.requester.trim(), files: draft.files };
     if (!editing) { item.status = "Open"; item.voters = [voterId]; }
     try {

@@ -39,7 +39,7 @@ function dayLabel(ts) {
 function postWindow() {
   const title = h("input", { id: "nTitle", maxlength: "120", placeholder: "e.g. Revit 2026 roll-out starts Monday" });
   const body = h("textarea", { id: "nBody", maxlength: "1500", placeholder: "A few sentences" });
-  const by = h("input", { id: "nBy", maxlength: "60", value: localStorage.getItem("sa.name") || "", placeholder: "Your name or team" });
+  const by = h("input", { id: "nBy", maxlength: "60", value: "", placeholder: "Your name or team" });
   const err = h("p", { class: "err" });
   openModal([modalHead("Post office news"), field("Headline", title), field("Details", body), field("Posted by", by), err,
     h("div", { class: "row" }, h("button", { class: "btn primary", type: "button", style: "flex:1", onclick: async () => {

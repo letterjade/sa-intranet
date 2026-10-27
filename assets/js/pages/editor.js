@@ -108,7 +108,6 @@ export function render(root, id, software) {
   const publish = async () => {
     if (!draft.name.trim()) { err.textContent = "Give your plugin a name (step 1)."; return; }
     if (!draft.madeBy.trim()) { err.textContent = "Add your name (step 1)."; return; }
-    try { localStorage.setItem("sa.name", draft.madeBy.trim()); } catch (e) { /* ignore */ }
     const { tools, isNew, notify, ...plugin } = draft;
     const ops = [{ op: "upsert", coll: "plugins", item: plugin }];
     const keepIds = new Set(tools.filter(t => (t.name || "").trim()).map(t => t.id));

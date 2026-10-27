@@ -155,7 +155,6 @@ function helpBox(p) {
   const who = "Jade Wong";
   const ask = async () => {
     if (!name.value.trim()) { err.textContent = "Type your name so they know who to help."; return; }
-    try { localStorage.setItem("sa.name", name.value.trim()); } catch (e) { /* ignore */ }
     try {
       const id = newId("h");
       await upsert("help", { id, plugin: p.id, name: name.value.trim(), where: where.value.trim(), done: false });
