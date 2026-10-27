@@ -28,12 +28,12 @@ export function discussionPanel(plugin, tools) {
   function composer(parent = null) {
     const key = plugin.id + ":" + (parent || "new"), draft = draftFor(key);
     const name = h("input", { id: "discussion-name-" + (parent || plugin.id), value: draft.name, maxlength: 60, required: true, autocomplete: "off", placeholder: "Your name", oninput: e => draft.name = e.target.value });
-    const body = h("textarea", { id: "discussion-body-" + (parent || plugin.id), rows: parent ? 3 : 4, maxlength: 4000, required: true, autocomplete: "off", placeholder: parent ? "Write a reply…" : "Ask a question, report an issue, or suggest an improvement…", oninput: e => draft.body = e.target.value });
+    const body = h("textarea", { id: "discussion-body-" + (parent || plugin.id), rows: 3, maxlength: 4000, required: true, autocomplete: "off", placeholder: parent ? "Write a reply…" : "Ask a question, report an issue, or suggest an improvement…", oninput: e => draft.body = e.target.value });
     body.value = draft.body;
     const choice = h("select", { id: "discussion-tool-" + plugin.id, onchange: e => draft.tool = e.target.value }, options(draft.tool));
     const error = h("p", { class: "err", role: "alert" });
     const submit = h("button", { class: "btn primary", type: "submit", disabled: !ready() || pending.has(key) }, parent ? "Post reply" : "Start discussion");
-    return h("form", { class: "panel discussion-composer stack", autocomplete: "off", onsubmit: async e => {
+    return h("form", { class: "panel discussion-composer stack" + (parent ? "" : " discussion-new-form"), autocomplete: "off", onsubmit: async e => {
       e.preventDefault(); if (pending.has(key)) return;
       if (!ready()) { error.textContent = "Update and restart the intranet server before posting."; return; }
       if (!draft.name.trim() || !draft.body.trim()) { error.textContent = "Enter your name and a comment."; return; }
@@ -93,13 +93,12 @@ export function discussionPanel(plugin, tools) {
     h("option", { value: "all", selected: filter === "all", text: "All tools" }),
     h("option", { value: "general", selected: filter === "general", text: "General plugin discussion" }),
     tools.map(t => h("option", { value: t.id, selected: filter === t.id, text: t.name })));
-  box.append(h("div", { class: "section-head" }, h("div", { class: "t" }, h("h2", { text: "Discussion" }),
-    h("p", { text: "Questions, feedback and replies for " + plugin.name + "." })), field("Show discussions for", filterInput)),
-    h("p", { class: "note", text: "You can edit or delete your own posts from the same browser on this computer. Names start blank; they are not remembered. Clearing browser data removes your editing access." }));
+  const header = h("div", { class: "section-head discussion-list-header" },
+    h("div", { class: "t" }, h("h2", { text: "Discussion" })),
+    field("Show discussions for", filterInput));
   if (!ready()) box.append(h("p", { class: "bad-box", role: "status", text: canEdit()
     ? "The website has updated, but its Python server is still running an older version. On the server computer, run Update-from-GitHub.bat, close the server window, reopen Start-SA-Intranet.bat, then refresh this page. Posting is disabled until the server is ready."
     : "Open this page through the running SA Intranet server to post comments." }));
-  box.append(composer());
   const threads = rows.filter(r => !r.parent && (filter === "all" || (filter === "general" ? !r.tool : r.tool === filter))).sort((a,b) => b.createdAt - a.createdAt);
   const list = h("div", { class: "stack discussion-threads" });
   for (const row of threads) {
@@ -115,7 +114,10 @@ export function discussionPanel(plugin, tools) {
       h("div", { class: "feedback-replies" }, replies.map(comment)),
       h("details", { open: expanded.has(row.id), ontoggle: e => { if (e.target.open) expanded.add(row.id); else expanded.delete(row.id); } }, h("summary", { text: "Reply to this discussion" }), composer(row.id))));
   }
-  if (!threads.length) list.append(h("p", { class: "empty", text: filter === "all" ? "No discussions yet. Start one above." : "No discussions for this tool yet." }));
-  box.append(list);
+  if (!threads.length) list.append(h("p", { class: "empty", text: filter === "all" ? "No discussions yet. Use the form to start one." : "No discussions for this tool yet." }));
+  box.append(h("div", { class: "discussion-layout" },
+    h("div", { class: "stack discussion-main" }, header, list),
+    h("aside", { class: "discussion-sidebar", "aria-label": "Start a discussion" }, composer(),
+      h("p", { class: "discussion-ownership-hint", text: "Edit or delete your posts from this browser. Names are not remembered; clearing browser data removes editing access." }))));
   return box;
 }

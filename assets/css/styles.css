@@ -439,7 +439,7 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 .feedback-thread details[open] summary { margin-bottom: .8rem; }
 
 /* Plugin discussion tab */
-.plugin-discussion{max-width:65rem;margin-left:auto;margin-right:auto}
+.plugin-discussion{max-width:88rem;margin-left:auto;margin-right:auto}
 .discussion-board{gap:1.4rem}
 .discussion-composer{background:#f2f2f2;gap:.8rem}
 .discussion-composer .btn{align-self:flex-start}
@@ -452,3 +452,19 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 .discussion-board textarea{width:100%;box-sizing:border-box}
 .discussion-board .feedback-replies .feedback-comment{padding:.7rem 0}
 .discussion-board .section-head>.field{min-width:min(100%,15rem)}
+
+/* Keep discussions prominent and the new-topic form compact. */
+.discussion-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(15rem,21rem);gap:2rem;align-items:start}
+.discussion-main{min-width:0;gap:1.1rem}
+.discussion-list-header{align-items:center}
+.discussion-list-header .t{flex:1 1 9rem}
+.discussion-list-header h2{font-size:1.55rem}
+.discussion-sidebar{min-width:0;position:sticky;top:5.5rem}
+.discussion-sidebar .discussion-new-form{padding:1rem;border:1px solid var(--soft-line);box-shadow:none;gap:.65rem}
+.discussion-sidebar h3{font-size:1.13rem}
+.discussion-sidebar .field{gap:.25rem}
+.discussion-sidebar label{font-size:.85rem}
+.discussion-sidebar input,.discussion-sidebar select,.discussion-sidebar textarea{width:100%;min-width:0;font-size:.9rem;padding:.45rem .6rem}
+.discussion-sidebar .btn{font-size:.85rem;padding:.42rem .7rem}
+.discussion-ownership-hint{font-size:.75rem;line-height:1.5;color:var(--gray);margin:.65rem .15rem 0}
+@media(max-width:850px){.discussion-layout{grid-template-columns:1fr;gap:1.4rem}.discussion-sidebar{position:static}.discussion-sidebar .discussion-new-form{max-width:none}}

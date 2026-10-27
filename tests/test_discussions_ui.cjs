@@ -24,17 +24,18 @@ const source=fs.readFileSync(path.join(__dirname,'../assets/js/pages/feedback.js
 vm.runInContext(source+'\nthis.board=discussionPanel;',context);
 const plugin={id:'p',name:'Drafting Tools'}, tools=context.state.data.tools;
 (async()=>{
- let root=context.board(plugin,tools), form=forms(root)[0];
+ let root=context.board(plugin,tools), form=forms(root).find(f=>f.attrs.class.includes('discussion-new-form'));
  assert.equal(find(form,n=>n.tag==='input').value,'');
+ const layout=find(root,n=>n.attrs.class==='discussion-layout');assert.equal(layout.kids[0].attrs.class,'stack discussion-main');assert.equal(layout.kids[1].tag,'aside');
  change(find(form,n=>n.tag==='input'),'Test staff');change(find(form,n=>n.tag==='textarea'),'Test question');change(find(form,n=>n.tag==='select'),'t');
  await submit(form); assert.equal(context.ops[0].tool,'t');assert.equal(context.ops[0].plugin,'p');assert.match(context.ops[0].edit_token,/^[a-f0-9]{64}$/);
- root=context.board(plugin,tools);assert.equal(find(forms(root)[0],n=>n.tag==='input').value,'');
+ root=context.board(plugin,tools);assert.equal(find(forms(root).find(f=>f.attrs.class.includes('discussion-new-form')),n=>n.tag==='input').value,'');
  assert(find(root,n=>n.tag==='button'&&n.kids.includes('Edit')));assert(![...storage.values()].join('').includes('Test staff'));
- const replyForm=forms(root)[1];change(find(replyForm,n=>n.tag==='input'),'Reply author');change(find(replyForm,n=>n.tag==='textarea'),'A reply');await submit(replyForm);
+ const replyForm=forms(root).find(f=>!f.attrs.class.includes('discussion-new-form'));change(find(replyForm,n=>n.tag==='input'),'Reply author');change(find(replyForm,n=>n.tag==='textarea'),'A reply');await submit(replyForm);
  assert.equal(context.ops[1].parent,context.ops[0].id);
  // A different browser does not get author actions.
  storage.clear();root=context.board(plugin,tools);assert(!find(root,n=>n.tag==='button'&&n.kids.includes('Edit')));
- context.state.data.capabilities=[];root=context.board(plugin,tools);assert(find(root,n=>n.attrs.class==='bad-box').attrs.text.includes('reopen Start-SA-Intranet.bat'));assert(find(forms(root)[0],n=>n.attrs.type==='submit').disabled);
+ context.state.data.capabilities=[];root=context.board(plugin,tools);assert(find(root,n=>n.attrs.class==='bad-box').attrs.text.includes('reopen Start-SA-Intranet.bat'));assert(find(forms(root).find(f=>f.attrs.class.includes('discussion-new-form')),n=>n.attrs.type==='submit').disabled);
  editable=false;root=context.board(plugin,tools);assert(find(root,n=>n.attrs.class==='bad-box').attrs.text.includes('running SA Intranet server'));
  // Check the plugin navigation is wired to a single discussion board.
  const pluginSource=fs.readFileSync(path.join(__dirname,'../assets/js/pages/plugin.js'),'utf8');
