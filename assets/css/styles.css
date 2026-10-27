@@ -437,3 +437,18 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 .feedback-replies:empty { display: none; }
 .feedback-thread summary { cursor: pointer; font-weight: 500; }
 .feedback-thread details[open] summary { margin-bottom: .8rem; }
+
+/* Plugin discussion tab */
+.plugin-discussion{max-width:65rem;margin-left:auto;margin-right:auto}
+.discussion-board{gap:1.4rem}
+.discussion-composer{background:#f2f2f2;gap:.8rem}
+.discussion-composer .btn{align-self:flex-start}
+.discussion-thread-head,.discussion-meta,.discussion-actions{display:flex;align-items:center;flex-wrap:wrap;gap:.7rem}
+.discussion-thread-head{justify-content:space-between}
+.discussion-thread-head select{max-width:100%;font:inherit}
+.discussion-meta{font-size:.85rem;color:var(--body)}
+.discussion-meta time,.discussion-meta small{color:var(--gray)}
+.discussion-actions{margin-top:.6rem;font-size:.85rem}
+.discussion-board textarea{width:100%;box-sizing:border-box}
+.discussion-board .feedback-replies .feedback-comment{padding:.7rem 0}
+.discussion-board .section-head>.field{min-width:min(100%,15rem)}

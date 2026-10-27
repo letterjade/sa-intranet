@@ -1,9 +1,9 @@
-import { feedbackWindow, feedbackCount } from "./feedback.js";
+import { discussionPanel, discussionCount } from "./feedback.js";
 // One plugin: its tools grouped by ribbon panel, how to use each one,
 // and the Install window (do it yourself, or ask for help).
 import { h, icon, img, sw, renderTopbar, renderBanner, openModal, closeModal, modalHead, copyText, toast, field, when } from "../ui.js";
 import { state, pluginById, toolsOf, canEdit, upsert, remove, newId } from "../api.js";
-import { postNews, newsItems, feedRow } from "./common.js";
+import { postNews } from "./common.js";
 
 let selected = null, view = "tools", lastPlugin = null;
 
@@ -29,17 +29,17 @@ export function render(root, id) {
           h("a", { class: "btn on-dark", href: "#/wishlist" }, "Request a tool for this plugin"),
           canEdit() ? h("a", { class: "btn on-dark", href: "#/plugin/" + encodeURIComponent(p.id) + "/edit" }, "Edit") : null)))));
 
-  const tabs = h("div", { class: "subtabs" }, [["tools", "Tools  " + tools.length], ["install", "Install"], ["changes", "What's changed"]].map(([k, l]) =>
+  const tabs = h("div", { class: "subtabs" }, [["tools", "Tools  " + tools.length], ["install", "Install"], ["discussion", "Discussion  " + discussionCount(p.id)]].map(([k, l]) =>
     h("button", { type: "button", "aria-pressed": view === k, onclick: () => { view = k; render(root, id); } }, l)));
 
   let left;
   if (view === "install") left = h("div", { class: "stack " + s.cls }, installSteps(p), h("div", null, helpBox(p)));
-  else if (view === "changes") { const items = newsItems().filter(n => n.plugin === p.id); left = h("div", { class: "panel" }, items.length ? items.map(feedRow) : h("p", { class: "empty", text: "No changes posted yet." })); }
+  else if (view === "discussion") left = discussionPanel(p, tools);
   else left = toolsList(p, tools, root, id);
 
   const t = tools.find(x => x.id === selected);
   const right = h("aside", { class: "detail " + s.cls }, t ? toolDetail(p, t) : h("div", { class: "panel" }, h("p", { class: "empty", text: "No tools listed yet." })), getIt(p));
-  root.replaceChildren(h("div", { class: "wrap page", style: "padding-top:0" }, tabs, h("div", { class: "cols", style: "margin-top:1.8rem" }, left, view === "tools" ? right : h("aside", { class: "detail " + s.cls }, getIt(p)))));
+  root.replaceChildren(h("div", { class: "wrap page", style: "padding-top:0" }, tabs, view === "discussion" ? h("div", { class: "plugin-discussion", style: "margin-top:1.8rem" }, left) : h("div", { class: "cols", style: "margin-top:1.8rem" }, left, view === "tools" ? right : h("aside", { class: "detail " + s.cls }, getIt(p)))));
 }
 
 function toolsList(p, tools, root, id) {
@@ -58,7 +58,7 @@ function toolsList(p, tools, root, id) {
         h("div", { class: "top" }, h("span", { class: "ti" }, img(t.icon, () => icon("bolt"))),
           h("div", { class: "nm" }, h("h4", { text: t.name }), h("div", { class: "panelname", text: (t.panel || "") + (t.panel ? " panel" : "") })), t.beta ? h("span", { class: "beta", text: "BETA" }) : null),
         h("p", { class: "short", text: t.short || t.description || "" }),
-        h("span", { class: "how", text: "How to use · Comments (" + feedbackCount(t.id) + ") →" })))));
+        h("span", { class: "how", text: "How to use →" })))));
   }
   if (!tools.length) box.append(h("p", { class: "empty", text: "No tools listed yet." }));
   return box;
@@ -71,10 +71,6 @@ function toolDetail(p, t) {
     h("div", { class: "hd" }, h("span", { class: "big" }, img(t.icon, () => icon("bolt"))), h("div", { style: "min-width:0" }, h("h3", { text: t.name }), h("div", { class: "where", text: t.command || [p.name, t.panel, t.name].filter(Boolean).join(" › ") }))),
     h("p", { class: "what", text: t.description || t.short || "" }),
     steps.length ? [h("b", { style: "font-weight:500;font-size:1.18rem;margin-top:.4rem", text: "How to use" }), h("ol", { class: "steps" }, steps.map(x => h("li", { text: x })))] : null,
-    h("section", { class: "panel soft", style: "margin-top:.5rem;gap:.6rem", "aria-label": "Tool comments and discussion" },
-      h("h4", { text: "Comments & discussion" }),
-      h("p", { text: "Report an issue, suggest an improvement, or reply to colleagues about this tool." }),
-      h("button", { class: "btn primary", type: "button", onclick: () => feedbackWindow(t) }, "Open discussion (" + feedbackCount(t.id) + ")")),
     t.beta ? h("p", { class: "note", text: "Beta: still being tested. Tell " + (p.madeBy || "the maker") + " if something looks wrong." }) : null);
 }
 

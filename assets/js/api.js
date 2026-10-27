@@ -31,7 +31,9 @@ export const canEdit = () => state.mode === "server";
 async function post(url, body, headers) {
   const r = await fetch(url, { method: "POST", headers, body });
   const d = await r.json().catch(() => ({ error: "The server didn't answer." }));
-  if (!r.ok) throw new Error(d.error || "Something went wrong.");
+  if (!r.ok) throw new Error(d.error === "unknown op"
+    ? "The server is running an older version. On the server computer, update from GitHub, close the running server window, and reopen Start-SA-Intranet.bat. Then refresh this page."
+    : d.error || "Something went wrong.");
   return d;
 }
 

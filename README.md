@@ -126,14 +126,10 @@ The office catalogue includes JadeTools for AutoCAD, Snyder Detail Library and J
 After pulling this update, restart server.py. A one-time migration adds missing entries from office-catalog.json to the live data.json without replacing existing records or office edits. Fresh installations receive the same entries from data.seed.json. The Adobe contents reflect the supplied folder screenshot; compatibility and runtime behaviour of the uploaded plugins have not been independently tested in their host applications.
 
 
-### Tool feedback
+### Plugin discussions
 
-Each tool has a Feedback button in its detail panel and a comment count on its card.
-Post a discussion, reply to an existing discussion, or set its status to Open,
-In progress, or Resolved. Names start blank and are not remembered. There are
-no accounts: names are self-entered and anyone in the office can change status.
-Comments are saved in the server's existing data.json, daily backups, and change
-log. Existing live data is preserved. New feedback appears within the usual
-20-second refresh interval; reply drafts stay intact during refresh.
+Each plugin now has Tools, Install and Discussion tabs. Discussion replaces What's changed. Start a topic about an existing tool or the plugin in general, filter by tool, and reply in the thread. Existing tool feedback is still shown under its plugin.
 
-After pulling this update, restart server.py and refresh the browser.
+Names are entered each time and never remembered. Only opaque editing keys are stored in the author's browser. Authors can edit or delete their posts from that browser; the server verifies the key before making changes. Deleting a topic keeps its replies and shows a deleted-post placeholder. Earlier comments without editing keys remain readable. There are no user accounts, and clearing browser storage removes editing access.
+
+After pulling the update, close the running Python server and reopen Start-SA-Intranet.bat. A page refresh alone does not reload Python. The Discussion tab checks the server's capabilities and disables posting with restart instructions when the running server is too old. Comments remain in data.json, daily backups and the administrative change log; they are not committed to GitHub.

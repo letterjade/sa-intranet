@@ -169,30 +169,52 @@ def apply_op(d, op, rec=None):
         {"coll": coll, "id": rid, "before": before, "after": copy.deepcopy(after)})
     kind = op.get("op")
     if kind == "feedback-post":
-        tool = op.get("tool")
-        if not any(t.get("id") == tool for t in d["tools"]):
-            raise ValueError("Tool not found. Refresh the page.")
+        parent_id = op.get("parent") or None
+        parent = next((r for r in d["feedback"] if r.get("id") == parent_id and not r.get("parent")), None) if parent_id else None
+        if parent_id and parent is None:
+            raise ValueError("Discussion not found. Refresh the page.")
+        tool_id = parent.get("tool") if parent else (op.get("tool") or None)
+        tool = next((t for t in d["tools"] if t.get("id") == tool_id), None)
+        plugin_id = (parent.get("plugin") or (tool or {}).get("plugin")) if parent else op.get("plugin")
+        if not any(p.get("id") == plugin_id for p in d["plugins"]):
+            raise ValueError("Plugin not found. Refresh the page.")
+        if not parent and tool_id and (tool is None or tool.get("plugin") != plugin_id):
+            raise ValueError("Choose an existing tool from this plugin.")
         author, body = op.get("author"), op.get("body")
         if not isinstance(author, str) or not author.strip() or len(author) > 60:
             raise ValueError("Enter your name (up to 60 characters).")
         if not isinstance(body, str) or not body.strip() or len(body) > 4000:
             raise ValueError("Enter a comment (up to 4000 characters).")
-        parent = op.get("parent") or None
-        if parent and not any(r.get("id") == parent and r.get("tool") == tool and not r.get("parent") for r in d["feedback"]):
-            raise ValueError("Discussion not found. Refresh the page.")
-        row = {"id": uuid.uuid4().hex, "tool": tool, "parent": parent,
-               "author": author.strip(), "body": body.strip(), "createdAt": now_ms(), "status": "Open"}
+        token, rid = op.get("edit_token"), op.get("id")
+        if not isinstance(token, str) or not re.fullmatch(r"[a-f0-9]{64}", token):
+            raise ValueError("Refresh the page to enable editing your own posts.")
+        if not isinstance(rid, str) or not re.fullmatch(r"[a-f0-9]{32}", rid) or any(r.get("id") == rid for r in d["feedback"]):
+            raise ValueError("Invalid or duplicate post. Refresh the page.")
+        row = {"id": rid, "plugin": plugin_id, "tool": tool_id, "parent": parent_id,
+               "author": author.strip(), "body": body.strip(), "createdAt": now_ms(), "status": "Open",
+               "ownerHash": hashlib.sha256(token.encode("utf-8")).hexdigest()}
         d["feedback"].append(row)
         note("feedback", row["id"], None, row)
-    elif kind == "feedback-status":
-        status = op.get("status")
-        if status not in ("Open", "In progress", "Resolved"):
-            raise ValueError("Invalid discussion status.")
-        row = next((r for r in d["feedback"] if r.get("id") == op.get("id") and not r.get("parent")), None)
-        if row is None:
-            raise ValueError("Discussion not found.")
+    elif kind in ("feedback-edit", "feedback-delete", "feedback-status"):
+        row = next((r for r in d["feedback"] if r.get("id") == op.get("id")), None)
+        if row is None or row.get("deleted"):
+            raise ValueError("Post not found or already deleted.")
+        token = op.get("edit_token")
+        if not isinstance(token, str) or not row.get("ownerHash") or not hmac.compare_digest(row["ownerHash"], hashlib.sha256(token.encode("utf-8")).hexdigest()):
+            raise ValueError("Only the original browser that posted this comment can edit or delete it.")
         before = copy.deepcopy(row)
-        row.update(status=status, updatedAt=now_ms())
+        if kind == "feedback-delete":
+            row.update(deleted=True, body="", author="", updatedAt=now_ms())
+        elif kind == "feedback-status":
+            status = op.get("status")
+            if row.get("parent") or status not in ("Open", "In progress", "Resolved"):
+                raise ValueError("Invalid discussion status.")
+            row.update(status=status, updatedAt=now_ms())
+        else:
+            body = op.get("body")
+            if not isinstance(body, str) or not body.strip() or len(body) > 4000:
+                raise ValueError("Enter a comment (up to 4000 characters).")
+            row.update(body=body.strip(), updatedAt=now_ms())
         note("feedback", row["id"], before, row)
     elif kind == "upsert":
         coll, item = op.get("coll"), op.get("item") or {}
@@ -438,6 +460,7 @@ class Handler(SimpleHTTPRequestHandler):
             with LOCK:
                 d = load()
             d["server"] = True
+            d["capabilities"] = ["plugin-discussions-v2"]
             return self.send_json(d)
         if p == "/api/scan":
             q = parse_qs(u.query)
@@ -469,6 +492,7 @@ class Handler(SimpleHTTPRequestHandler):
                 if rec:
                     log_change({"kind": "change", "changes": rec}, client_ip(self))
                 d["server"] = True
+                d["capabilities"] = ["plugin-discussions-v2"]
                 return self.send_json(d)
             except Exception as e:
                 return self.send_json({"error": str(e)}, 400)
@@ -590,6 +614,7 @@ class Handler(SimpleHTTPRequestHandler):
                 save(d)
             log_change({"kind": "undo", "of": entry["id"], "changes": [{"coll": c["coll"], "id": c["id"], "before": c["after"], "after": c["before"]} for c in entry["changes"]]}, ip)
             d["server"] = True
+            d["capabilities"] = ["plugin-discussions-v2"]
             return self.send_json(d)
         if what == "delete-file":
             name = os.path.basename(str(body.get("name") or ""))
