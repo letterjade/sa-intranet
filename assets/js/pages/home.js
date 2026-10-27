@@ -1,7 +1,7 @@
 // Home: two jobs — open an office plugin, or open an office system.
-import { h, icon, renderTopbar, renderBanner, searchBox } from "../ui.js";
+import { h, icon, renderTopbar, renderBanner, searchBox, SOFTWARE } from "../ui.js";
 import { state, activeWishes } from "../api.js";
-import { pluginCard, addPluginCard, appTile, addShortcutTile, allLinks, newsItems, feedRow } from "./common.js";
+import { appTile, addShortcutTile, allLinks, newsItems, feedRow } from "./common.js";
 import { alertsLine } from "../notify.js";
 
 let tab = "Updates";
@@ -15,15 +15,22 @@ export function render(root) {
       h("p", { class: "sub", text: new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) })),
     searchBox());
 
-  const plugins = [...state.data.plugins].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const hints = { Revit: "AI, annotations and detail tools", AutoCAD: "Room areas and drafting tools", Adobe: "Photoshop and Illustrator assets", Rhino: "Grasshopper patterns and scripts", Other: "More office tools" };
+  const categories = SOFTWARE.map(s => {
+    const n = state.data.plugins.filter(p => (p.software || "Other") === s.id).length;
+    return h("a", { class: "software-shortcut", href: "#/plugins/" + s.id.toLowerCase() },
+      h("span", { class: "shortcut-letter", "aria-hidden": "true", text: s.id === "AutoCAD" ? "CAD" : s.id === "Adobe" ? "Ps / Ai" : s.id === "Rhino" ? "GH" : s.id === "Revit" ? "R" : "…" }),
+      h("span", { class: "shortcut-copy" }, h("b", { text: s.label || s.id }), h("small", { text: hints[s.id] }), h("span", { class: "shortcut-count", text: n ? n + (n === 1 ? " plugin" : " plugins") : "Browse category" })),
+      h("span", { class: "shortcut-arrow", "aria-hidden": "true", text: "→" }));
+  });
   const main = h("div", { class: "stack" },
     h("div", { class: "section-head" },
-      h("div", { class: "t" }, h("h2", { text: "Office plugins" }), h("p", { text: "Plugins made in our office. Click one to see what each button does." })),
+      h("div", { class: "t" }, h("h2", { text: "Office plugins" }), h("p", { text: "Choose your software to find tools, templates and installation help." })),
       h("a", { class: "btn", href: "#/plugins" }, "All office plugins  →")),
-    h("div", { class: "cards" }, plugins.slice(0, 3).map(pluginCard), plugins.length < 3 ? addPluginCard() : null),
+    h("nav", { class: "software-shortcuts", "aria-label": "Browse office plugins by software" }, categories),
     h("div", { class: "spacer" }),
     h("div", { class: "section-head" },
-      h("div", { class: "t" }, h("h2", { text: "Office systems" }), h("p", { text: "Click a tile to open it." }))),
+      h("div", { class: "t" }, h("h2", { text: "Office systems" }), h("p", { text: "Your everyday office links, all in one place." }))),
     h("div", { class: "tiles" }, allLinks().map(l => appTile(l)), addShortcutTile()));
 
   const side = h("aside", { class: "stack", style: "gap:1.27rem" }, whatsNew(),

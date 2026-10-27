@@ -412,3 +412,17 @@ footer address{font-style:normal;color:var(--gray);font-size:.95rem;text-align:r
 
 /* Use the same neutral fill for every software category. */
 .sw-revit,.sw-autocad,.sw-adobe,.sw-rhino,.sw-other{--sw-tint:#f2f2f2}
+
+/* Home category shortcuts: neutral launch buttons for the office hub. */
+.software-shortcuts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr));gap:.85rem}
+.software-shortcut{display:flex;align-items:center;gap:1rem;padding:1.2rem;border:1.5px solid var(--soft-line);border-radius:var(--radius-lg);background:#f2f2f2;color:var(--black);text-decoration:none;min-width:0;transition:border-color .15s,background .15s}
+.software-shortcut:hover{background:#e9edef;border-color:var(--teal-dark)}
+.shortcut-letter{display:grid;place-items:center;flex:none;width:3rem;height:3rem;border-radius:.65rem;background:#fff;color:var(--body);font-size:.9rem;font-weight:600}
+.shortcut-copy{display:flex;flex-direction:column;gap:.2rem;min-width:0}
+.shortcut-copy b{font-size:1.2rem;font-weight:500}
+.shortcut-copy small{font-size:.85rem;color:var(--body)}
+.shortcut-count{font-size:.75rem;color:var(--gray)}
+.shortcut-arrow{margin-left:auto;color:var(--body)}
+.pyrevit-setup{background:#f2f2f2;gap:.8rem}
+.pyrevit-setup details[open] summary{margin-bottom:.8rem}
+.pyrevit-setup details>.btn{margin-top:.8rem}
